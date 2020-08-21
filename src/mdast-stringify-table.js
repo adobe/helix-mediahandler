@@ -30,12 +30,6 @@ function robustTables() {
             child.value = html.replace(/\r?\n/g, '<br>');
             break;
           }
-          case 'paragraph':
-            // keep empty paragraph (they will be treated correctly by remark-stringify later
-            if (!child.children || !child.children.length) {
-              break;
-            }
-          // eslint-disable-next-line no-fallthrough
           default: {
             // convert the rest to html
             child.value = hast2html(md2hast(child));
