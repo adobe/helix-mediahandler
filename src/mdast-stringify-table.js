@@ -31,8 +31,8 @@ function robustTables() {
             break;
           }
           case 'paragraph':
-            // if the paragraph just has 1 text node, keep it
-            if (!child.children || !child.children.length || (child.children.length === 1 && child.children[0].type === 'text')) {
+            // keep empty paragraph (they will be treated correctly by remark-stringify later
+            if (!child.children || !child.children.length) {
               break;
             }
           // eslint-disable-next-line no-fallthrough
