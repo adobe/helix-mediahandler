@@ -9,3 +9,6 @@ logs
 .DS_Store
 test-results.xml
 .env
+external*.json
+downloads/
+corrupt.txt
