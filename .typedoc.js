@@ -10,15 +10,11 @@
  * governing permissions and limitations under the License.
  */
 module.exports = {
-  inputFiles: ['./src'],
-  mode: 'file',
+  entryPoints: ['./src/index.d.ts'],
   out: 'docs',
   readme: 'none',
-  includeDeclarations: true,
   excludeExternals: true,
   disableSources: true,
   plugin: 'typedoc-plugin-markdown',
-  skipSidebar: true,
   hideBreadcrumbs: true,
-  hideSources: true,
 }
