@@ -265,6 +265,8 @@ describe('MediaHandler', () => {
         agent: `blobhandler-${version}`,
         alg: '8k',
         src: '',
+        height: '268',
+        width: '477',
       },
       owner: 'owner',
       ref: 'ref',
@@ -291,6 +293,8 @@ describe('MediaHandler', () => {
         alg: '8k',
         agent: `blobhandler-${version}`,
         src: '',
+        height: '268',
+        width: '477',
       },
       owner: 'owner',
       ref: 'ref',
@@ -308,7 +312,7 @@ describe('MediaHandler', () => {
       namePrefix: 'ittest_',
     });
     const testImage = await fse.readFile(TEST_IMAGE);
-    const blob = handler.createMediaResource(testImage, testImage.length, 'image/png');
+    const blob = handler.createMediaResource(testImage);
     assert.ok(blob.data);
     blob.data = null;
     assert.deepStrictEqual(blob, {
@@ -321,6 +325,8 @@ describe('MediaHandler', () => {
         agent: `blobhandler-${version}`,
         alg: '8k',
         src: '',
+        height: '268',
+        width: '477',
       },
       owner: 'owner',
       ref: 'ref',
@@ -334,16 +340,16 @@ describe('MediaHandler', () => {
 
   it('creates a media resource with no content type', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
-    const testImage = await fse.readFile(TEST_IMAGE);
+    const testImage = Buffer.from('foo bar');
     const blob = handler.createMediaResource(testImage, testImage.length, undefined, 'image.jpg');
     assert.ok(blob.data);
     blob.data = null;
     assert.deepStrictEqual(blob, {
       contentBusId: 'foo-id',
-      contentLength: 143719,
+      contentLength: 7,
       contentType: 'image/jpeg',
       data: null,
-      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      hash: '1ba15914a0844f8fcdf49e359df0a2f0bec208613',
       meta: {
         agent: `blobhandler-${version}`,
         alg: '8k',
@@ -353,32 +359,34 @@ describe('MediaHandler', () => {
       ref: 'ref',
       repo: 'repo',
       sourceUri: 'image.jpg',
-      storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      storageKey: 'foo-id/1ba15914a0844f8fcdf49e359df0a2f0bec208613',
+      storageUri: 's3://helix-media-bus/foo-id/1ba15914a0844f8fcdf49e359df0a2f0bec208613',
+      uri: 'https://ref--repo--owner.hlx.live/media_1ba15914a0844f8fcdf49e359df0a2f0bec208613',
     });
   });
 
   it('creates an external with small buffer', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
-    const blob = handler.createMediaResource(testImage.slice(0, 1024), testImage.length, undefined, 'image.jpg');
+    const blob = handler.createMediaResource(testImage.slice(0, 1024), testImage.length, undefined, 'image.png');
     assert.ok(!blob.data);
     assert.deepStrictEqual(blob, {
       contentBusId: 'foo-id',
       contentLength: 143719,
-      contentType: 'image/jpeg',
+      contentType: 'image/png',
       data: null,
       hash: '1086c75d27ff7dba126e9fba302c402f07caa3822',
       meta: {
         agent: `blobhandler-${version}`,
         alg: '8k',
-        src: 'image.jpg',
+        src: 'image.png',
+        height: '268',
+        width: '477',
       },
       owner: 'owner',
       ref: 'ref',
       repo: 'repo',
-      sourceUri: 'image.jpg',
+      sourceUri: 'image.png',
       storageKey: 'foo-id/1086c75d27ff7dba126e9fba302c402f07caa3822',
       storageUri: 's3://helix-media-bus/foo-id/1086c75d27ff7dba126e9fba302c402f07caa3822',
       uri: 'https://ref--repo--owner.hlx.live/media_1086c75d27ff7dba126e9fba302c402f07caa3822',
@@ -442,14 +450,28 @@ describe('MediaHandler', () => {
 
     const testStream = fse.createReadStream(TEST_IMAGE);
     const blob = await handler.createMediaResourceFromStream(testStream, 143719, 'image/png', 'https://www.foo.com');
+    delete blob.meta.width;
+    delete blob.meta.height;
 
     const scope = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .s3Multipart({
         alg: '8k',
         agent: 'blob-test',
         src: 'https://www.foo.com',
+      })
+      .put('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4?x-id=CopyObject')
+      .reply(function reply() {
+        assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
+        assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4');
+        assert.deepStrictEqual(extractMeta(this.req.headers), {
+          agent: 'blob-test',
+          alg: '8k',
+          src: 'https://www.foo.com',
+          width: '477',
+          height: '268',
+        });
+        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-
     assert.strictEqual(await handler.put(blob), true);
     scope.done();
   });
@@ -468,6 +490,8 @@ describe('MediaHandler', () => {
         alg: '8k',
         agent: 'blob-test',
         src: '',
+        height: '74',
+        width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
     assert.strictEqual(await handler.put(blob), true);
     scope.done();
@@ -629,20 +653,9 @@ describe('MediaHandler', () => {
         alg: '8k',
         agent: 'blob-test',
         src: '/some-source',
+        height: '74',
+        width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
-      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
-      .reply(function reply() {
-        assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
-        assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-        assert.deepStrictEqual(extractMeta(this.req.headers), {
-          alg: '8k',
-          agent: 'blob-test',
-          src: '/some-source',
-          width: '58',
-          height: '74',
-        });
-        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
-      })
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
       .reply(function reply() {
         assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');

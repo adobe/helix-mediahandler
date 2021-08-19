@@ -136,15 +136,20 @@ class MediaHandler {
 
     // compute hash
     const resource = this._initMediaResource(buffer, contentLength);
+
+    // try to detect dimensions
+    const { type, ...dims } = this._getDimensions(buffer, '');
+
     return {
       sourceUri,
       data: buffer.length === contentLength ? buffer : null,
-      contentType: contentType || mime.getType(sourceUri) || 'application/octet-stream',
+      contentType: contentType || type || mime.getType(sourceUri) || 'application/octet-stream',
       ...resource,
       meta: {
         alg: '8k',
         agent: this._blobAgent,
         src: sourceUri,
+        ...dims,
       },
     };
   }
@@ -172,15 +177,20 @@ class MediaHandler {
 
     // compute hash
     const resource = this._initMediaResource(partialBuffer, contentLength);
+
+    // try to detect dimensions
+    const { type, ...dims } = this._getDimensions(partialBuffer, '');
+
     return {
       sourceUri,
       stream,
-      contentType: contentType || mime.getType(sourceUri) || 'application/octet-stream',
+      contentType: contentType || type || mime.getType(sourceUri) || 'application/octet-stream',
       ...resource,
       meta: {
         alg: '8k',
         agent: this._blobAgent,
         src: sourceUri,
+        ...dims,
       },
     };
   }
@@ -242,6 +252,7 @@ class MediaHandler {
       return {
         width: String(dimensions.width),
         height: String(dimensions.height),
+        type: mime.getType(dimensions.type),
       };
     } catch (e) {
       this._log.warn(`[${c}] error detecting dimensions: ${e}`);
