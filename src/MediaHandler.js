@@ -12,6 +12,7 @@
 /* eslint-disable no-plusplus,no-param-reassign */
 
 const crypto = require('crypto');
+const { Transform } = require('stream');
 const fetchAPI = require('@adobe/helix-fetch');
 const mime = require('mime');
 const {
@@ -20,7 +21,10 @@ const {
   CopyObjectCommand,
 } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
+const sizeOf = require('image-size');
 const { version } = require('../package.json');
+
+sizeOf.disableFS(true);
 
 // cache external urls
 const blobCache = {};
@@ -57,6 +61,7 @@ class MediaHandler {
       _cache: blobCache,
       _noCache: opts.noCache,
       _fetchTimeout: opts.fetchTimeout || 10000,
+      _uploadBufferSize: opts.uploadBufferSize || 1024 * 1024 * 5,
 
       // estimated bandwidth for copying blobs (should be dynamically adapted).
       _bandwidth: 1024 * 1024, // bytes/s
@@ -221,6 +226,30 @@ class MediaHandler {
   }
 
   /**
+   * Returns the dimensions object for the given data.
+   * @param {Buffer} data
+   * @param {number} c request counter for logging
+   * @returns {{}|{width: string, height: string}}
+   * @private
+   */
+  _getDimensions(data, c) {
+    if (!data) {
+      return {};
+    }
+    try {
+      const dimensions = sizeOf(data);
+      this._log.info(`[${c}] detected dimensions: ${dimensions.type} ${dimensions.width} x ${dimensions.height}`);
+      return {
+        width: String(dimensions.width),
+        height: String(dimensions.height),
+      };
+    } catch (e) {
+      this._log.warn(`[${c}] error detecting dimensions: ${e}`);
+      return {};
+    }
+  }
+
+  /**
    * Fetches the header (8192 bytes) of the resource assuming the server supports range requests.
    *
    * @param {string} uri Resource URI
@@ -295,6 +324,9 @@ class MediaHandler {
       contentType = mime.getType(uri) || 'application/octet-stream';
     }
 
+    // try to detect dimensions
+    const dims = this._getDimensions(data, c);
+
     // compute hashes
     const hashInfo = this._initMediaResource(body, contentLength);
     return {
@@ -306,6 +338,7 @@ class MediaHandler {
         alg: '8k',
         agent: this._blobAgent,
         src: uri,
+        ...dims,
       },
       ...hashInfo,
     };
@@ -358,6 +391,7 @@ class MediaHandler {
         Key: blob.storageKey,
         CopySource: `${this._bucketId}/${blob.storageKey}`,
         Metadata: blob.meta,
+        MetadataDirective: 'REPLACE',
       }));
       log.info(`[${c}] Metadata updated for: ${blob.storageUri}`);
     } catch (e) {
@@ -449,6 +483,33 @@ class MediaHandler {
       log.info(`[${c}] Upload to ${blob.storageUri}`);
     }
 
+    // check for dimensions
+    let bufferSize = 0;
+    const buffers = [];
+    if (!blob.meta.width) {
+      if (blob.data) {
+        const { width, height } = this._getDimensions(blob.data, c);
+        if (width) {
+          blob.meta.width = width;
+          blob.meta.height = height;
+        }
+      } else {
+        // create transfer stream and store the first mb
+        const capture = new Transform({
+          transform(chunk, encoding, callback) {
+            /* istanbul ignore next */
+            if (bufferSize < 1024 * 1024) {
+              log.debug(`[${c}] cache buffer ${chunk.length}.`);
+              buffers.push(chunk);
+              bufferSize += chunk.length;
+            }
+            callback(null, chunk);
+          },
+        });
+        blob.stream = blob.stream.pipe(capture);
+      }
+    }
+
     const upload = new Upload({
       client: this._s3,
       params: {
@@ -463,7 +524,6 @@ class MediaHandler {
     try {
       const result = await upload.done();
       log.info(`[${c}] Upload done ${blob.storageKey}: ${result.Location}`);
-      return true;
     } catch (e) {
       log.error(`[${c}] Failed to upload blob ${blob.storageKey}: ${e.status || e.message}`);
       return false;
@@ -472,6 +532,17 @@ class MediaHandler {
       delete blob.stream;
       delete blob.data;
     }
+
+    // check if we need to update the metadata with the dimensions
+    if (buffers.length) {
+      const { width, height } = this._getDimensions(Buffer.concat(buffers), c);
+      if (width) {
+        blob.meta.width = width;
+        blob.meta.height = height;
+        await this.putMetaData(blob);
+      }
+    }
+    return true;
   }
 
   /**
@@ -503,12 +574,17 @@ class MediaHandler {
       return false;
     }
     log.info(`[${c}] Download success: ${source.status}`);
-
-    // record some data
-    blob.stream = source.body;
     blob.lastModified = source.headers.get('last-modified');
     blob.contentType = MediaHandler.sanitizeContentType(source.headers.get('content-type'));
-    blob.contentLength = source.headers.get('content-length');
+    blob.contentLength = Number.parseInt(source.headers.get('content-length'), 10);
+
+    // the s3 multipart uploader has a default min size of 5mb, so download smaller images when
+    // dimensions are missing
+    if (!blob.meta.width && blob.contentLength < this._uploadBufferSize) {
+      blob.data = await source.buffer();
+    } else {
+      blob.stream = source.body;
+    }
 
     // get metadata
     let metaData = {};

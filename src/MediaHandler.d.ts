@@ -30,6 +30,16 @@ export declare interface MediaMeta {
    * source uri
    */
   src?: string,
+
+  /**
+   * image width
+   */
+  width?: string,
+
+  /**
+   * image height
+   */
+  height?: string,
 }
 
 /**
@@ -215,6 +225,12 @@ export declare interface MediaHandlerOptions {
    * Authentication header for fetching sources.
    */
   auth?: string,
+
+  /**
+   * Size of the upload buffer to calculate image size if missing.
+   * @default 5mb
+   */
+  uploadBufferSize?: number,
 }
 
 /**
