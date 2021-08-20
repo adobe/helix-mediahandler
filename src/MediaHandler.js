@@ -329,14 +329,14 @@ class MediaHandler {
       }
     }
 
+    // try to detect dimensions
+    const { type, ...dims } = this._getDimensions(data, c);
+
     // compute the content type
     let contentType = res.headers.get('content-type');
     if (!contentType) {
-      contentType = mime.getType(uri) || 'application/octet-stream';
+      contentType = type || mime.getType(uri) || 'application/octet-stream';
     }
-
-    // try to detect dimensions
-    const dims = this._getDimensions(data, c);
 
     // compute hashes
     const hashInfo = this._initMediaResource(body, contentLength);
