@@ -68,6 +68,17 @@ Scope.prototype.s3Multipart = function s3Multipart(expectedMeta, sha = '18bb2f0e
                 </CompleteMultipartUploadResult>`);
 };
 
+/**
+ * Add custom scope interceptor chain for multipart uploads
+ */
+Scope.prototype.putObject = function putObject(expectedMeta, sha = '18bb2f0e55ff47be3fc32a575590b53e060b911f4') {
+  return this.put(`/foo-id/${sha}?x-id=PutObject`)
+    .reply(function reply() {
+      assert.deepStrictEqual(extractMeta(this.req.headers), expectedMeta);
+      return [201];
+    });
+};
+
 describe('MediaHandler', () => {
   ['owner', 'repo', 'ref', 'contentBusId'].forEach((prop) => {
     it(`fails if no ${prop}`, async () => {
@@ -98,7 +109,7 @@ describe('MediaHandler', () => {
     const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
-      .s3Multipart({
+      .putObject({
         agent: `blobhandler-${version}`,
         alg: '8k',
         width: '477',
@@ -157,7 +168,7 @@ describe('MediaHandler', () => {
     const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
-      .s3Multipart({
+      .putObject({
         agent: `blobhandler-${version}`,
         alg: '8k',
         'source-last-modified': '01-01-2021',
@@ -430,7 +441,7 @@ describe('MediaHandler', () => {
     const blob = handler.createMediaResource(testImage, 0, 'image/png');
 
     const scope = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
-      .s3Multipart({
+      .putObject({
         alg: '8k',
         agent: 'blob-test',
         src: '',
@@ -454,7 +465,7 @@ describe('MediaHandler', () => {
     delete blob.meta.height;
 
     const scope = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
-      .s3Multipart({
+      .putObject({
         alg: '8k',
         agent: 'blob-test',
         src: 'https://www.foo.com',
@@ -486,7 +497,7 @@ describe('MediaHandler', () => {
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
 
     const scope = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
-      .s3Multipart({
+      .putObject({
         alg: '8k',
         agent: 'blob-test',
         src: '',
@@ -539,7 +550,7 @@ describe('MediaHandler', () => {
     const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
-      .s3Multipart({
+      .putObject({
         agent: 'blob-test',
         alg: '8k',
         height: '268',
@@ -601,7 +612,7 @@ describe('MediaHandler', () => {
     const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
-      .s3Multipart({
+      .putObject({
         agent: `blobhandler-${version}`,
         alg: '8k',
         height: '268',
@@ -649,7 +660,7 @@ describe('MediaHandler', () => {
     blob.meta.src = '/some-source';
 
     const scope = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
-      .s3Multipart({
+      .putObject({
         alg: '8k',
         agent: 'blob-test',
         src: '/some-source',
