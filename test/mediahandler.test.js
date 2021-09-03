@@ -139,7 +139,7 @@ describe('MediaHandler', () => {
       repo: 'repo',
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
 
     scope1.done();
@@ -210,7 +210,7 @@ describe('MediaHandler', () => {
       repo: 'repo',
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
 
     scope1.done();
@@ -253,7 +253,7 @@ describe('MediaHandler', () => {
       repo: 'repo',
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
 
     scope1.done();
@@ -285,7 +285,7 @@ describe('MediaHandler', () => {
       sourceUri: '',
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
   });
 
@@ -313,7 +313,7 @@ describe('MediaHandler', () => {
       contentBusId: 'foo-id',
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
   });
 
@@ -345,7 +345,7 @@ describe('MediaHandler', () => {
       sourceUri: '',
       storageKey: 'foo-id/ittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/ittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
   });
 
@@ -372,7 +372,7 @@ describe('MediaHandler', () => {
       sourceUri: 'image.jpg',
       storageKey: 'foo-id/1ba15914a0844f8fcdf49e359df0a2f0bec208613',
       storageUri: 's3://helix-media-bus/foo-id/1ba15914a0844f8fcdf49e359df0a2f0bec208613',
-      uri: 'https://ref--repo--owner.hlx.live/media_1ba15914a0844f8fcdf49e359df0a2f0bec208613',
+      uri: 'https://ref--repo--owner.hlx3.page/media_1ba15914a0844f8fcdf49e359df0a2f0bec208613',
     });
   });
 
@@ -400,7 +400,7 @@ describe('MediaHandler', () => {
       sourceUri: 'image.png',
       storageKey: 'foo-id/1086c75d27ff7dba126e9fba302c402f07caa3822',
       storageUri: 's3://helix-media-bus/foo-id/1086c75d27ff7dba126e9fba302c402f07caa3822',
-      uri: 'https://ref--repo--owner.hlx.live/media_1086c75d27ff7dba126e9fba302c402f07caa3822',
+      uri: 'https://ref--repo--owner.hlx3.page/media_1086c75d27ff7dba126e9fba302c402f07caa3822',
     });
   });
 
@@ -580,7 +580,7 @@ describe('MediaHandler', () => {
       repo: 'repo',
       storageKey: 'foo-id/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
 
     scope1.done();
@@ -642,7 +642,7 @@ describe('MediaHandler', () => {
       repo: 'repo',
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      uri: 'https://ref--repo--owner.hlx.live/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.hlx3.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
     });
 
     scope1.done();

@@ -48,8 +48,8 @@ export declare interface MediaMeta {
 export declare interface MediaResource {
 
   /**
-   * URI of the media resource in the format `https://{ref}--{repo}--{owner}.hlx.live/media_{sha}`
-   * @example "https://ref--repo--owner.hlx.live/media_xxxxyyyyzzzz#image.png"
+   * URI of the media resource in the format `https://{ref}--{repo}--{owner}.hlx3.page/media_{sha}`
+   * @example "https://ref--repo--owner.hlx3.page/media_xxxxyyyyzzzz#image.png"
    */
   uri: string,
 

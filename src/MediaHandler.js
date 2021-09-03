@@ -376,7 +376,7 @@ class MediaHandler {
     const storageKey = `${this._contentBusId}/${this._namePrefix}${hash}`;
 
     return {
-      uri: `https://${this._ref}--${this._repo}--${this._owner}.hlx.live/media_${hash}`,
+      uri: `https://${this._ref}--${this._repo}--${this._owner}.hlx3.page/media_${hash}`,
       storageUri: `s3://${this._bucketId}/${storageKey}`,
       storageKey,
       owner: this._owner,
