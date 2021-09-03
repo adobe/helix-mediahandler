@@ -140,7 +140,7 @@ class MediaHandler {
     // try to detect dimensions
     const { type, ...dims } = this._getDimensions(buffer, '');
 
-    return {
+    return MediaHandler.updateBlobURI({
       sourceUri,
       data: buffer.length === contentLength ? buffer : null,
       contentType: contentType || type || mime.getType(sourceUri) || 'application/octet-stream',
@@ -151,7 +151,7 @@ class MediaHandler {
         src: sourceUri,
         ...dims,
       },
-    };
+    });
   }
 
   /**
@@ -181,7 +181,7 @@ class MediaHandler {
     // try to detect dimensions
     const { type, ...dims } = this._getDimensions(partialBuffer, '');
 
-    return {
+    return MediaHandler.updateBlobURI({
       sourceUri,
       stream,
       contentType: contentType || type || mime.getType(sourceUri) || 'application/octet-stream',
@@ -192,7 +192,7 @@ class MediaHandler {
         src: sourceUri,
         ...dims,
       },
-    };
+    });
   }
 
   /**
@@ -232,6 +232,7 @@ class MediaHandler {
     }
     // eslint-disable-next-line no-param-reassign
     blob.meta = meta;
+    MediaHandler.updateBlobURI(blob);
     return true;
   }
 
@@ -340,7 +341,7 @@ class MediaHandler {
 
     // compute hashes
     const hashInfo = this._initMediaResource(body, contentLength);
-    return {
+    return MediaHandler.updateBlobURI({
       originalUri: res.url,
       data,
       contentType,
@@ -352,14 +353,14 @@ class MediaHandler {
         ...dims,
       },
       ...hashInfo,
-    };
+    });
   }
 
   /**
-   * Computes the content hash of the given buffer.
+   * Computes the content hash of the given buffer and returns the media resource
    * @param {Buffer} buffer
    * @param {number} contentLength
-   * @returns {MediaResource} hash information
+   * @returns {MediaResource} media resource
    * @private
    */
   _initMediaResource(buffer, contentLength) {
@@ -375,8 +376,7 @@ class MediaHandler {
     const hash = `1${contentHash}`;
     const storageKey = `${this._contentBusId}/${this._namePrefix}${hash}`;
 
-    return {
-      uri: `https://${this._ref}--${this._repo}--${this._owner}.hlx3.page/media_${hash}`,
+    return MediaHandler.updateBlobURI({
       storageUri: `s3://${this._bucketId}/${storageKey}`,
       storageKey,
       owner: this._owner,
@@ -385,7 +385,7 @@ class MediaHandler {
       contentBusId: this._contentBusId,
       contentLength,
       hash,
-    };
+    });
   }
 
   /**
@@ -405,6 +405,7 @@ class MediaHandler {
         MetadataDirective: 'REPLACE',
       }));
       log.info(`[${c}] Metadata updated for: ${blob.storageUri}`);
+      MediaHandler.updateBlobURI(blob);
     } catch (e) {
       log.info(`[${c}] Failed to update metadata for ${blob.storageUri}: ${e.$metadata.httpStatusCode || e.message}`);
     }
@@ -553,6 +554,7 @@ class MediaHandler {
         await this.putMetaData(blob);
       }
     }
+    MediaHandler.updateBlobURI(blob);
     return true;
   }
 
@@ -612,6 +614,28 @@ class MediaHandler {
       ...metaData,
     };
     return this.put(blob);
+  }
+
+  /**
+   * Regenerates the `uri` property of the given resource including the proper extension and
+   * dimensions if available.
+   * @param {MediaResource} blob The resource to update.
+   * @return {MediaResource} the resource.
+   */
+  static updateBlobURI(blob) {
+    const {
+      owner,
+      repo,
+      ref,
+      hash,
+    } = blob;
+    const ext = mime.getExtension(blob.contentType) || 'bin';
+    let fragment = '';
+    if (blob.meta && blob.meta.width && blob.meta.height) {
+      fragment = `#width=${blob.meta.width}&width=${blob.meta.height}`;
+    }
+    blob.uri = `https://${ref}--${repo}--${owner}.hlx3.page/media_${hash}.${ext}${fragment}`;
+    return blob;
   }
 
   static sanitizeContentType(type) {

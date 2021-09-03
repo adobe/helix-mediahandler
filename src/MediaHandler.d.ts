@@ -49,7 +49,7 @@ export declare interface MediaResource {
 
   /**
    * URI of the media resource in the format `https://{ref}--{repo}--{owner}.hlx3.page/media_{sha}`
-   * @example "https://ref--repo--owner.hlx3.page/media_xxxxyyyyzzzz#image.png"
+   * @example "https://ref--repo--owner.hlx3.page/media_xxxxyyyyzzzz.png#width=477&width=268"
    */
   uri: string,
 
