@@ -167,8 +167,11 @@ class MediaHandler {
       throw Error('createExternalResourceFromStream() needs contentLength');
     }
     // ensure readable
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
       stream.once('readable', resolve);
+      stream.on('error', (e) => {
+        reject(Error(`Error reading stream: ${e.code}`));
+      });
     });
 
     // in order to compute hash, we need to read at least 8192 bytes

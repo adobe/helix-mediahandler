@@ -321,6 +321,13 @@ describe('MediaHandler', () => {
     });
   });
 
+  it('handles corrupt stream', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testStream = fse.createReadStream('foobar-does-not-exist');
+    const task = handler.createMediaResourceFromStream(testStream, 143719, 'image/png');
+    await assert.rejects(task, Error('Error reading stream: ENOENT'));
+  });
+
   it('creates a media resource with prefix', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
