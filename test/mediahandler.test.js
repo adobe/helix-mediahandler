@@ -11,16 +11,19 @@
  */
 
 /* eslint-env mocha */
-const fse = require('fs-extra');
-const path = require('path');
-const nock = require('nock');
-const { Scope } = require('nock/lib/scope');
-const assert = require('assert');
-const MediaHandler = require('../src/MediaHandler.js');
-const { version } = require('../package.json');
+import fse from 'fs-extra';
+import path from 'path';
+import nock from 'nock';
+import { Scope } from 'nock/lib/scope.js';
 
-const TEST_IMAGE = path.resolve(__dirname, 'fixtures', 'test_image.png');
-const TEST_SMALL_IMAGE = path.resolve(__dirname, 'fixtures', 'test_small_image.png');
+import assert from 'assert';
+import MediaHandler from '../src/MediaHandler.js';
+import pkgJson from '../src/package.cjs';
+
+const { version } = pkgJson;
+
+const TEST_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_image.png');
+const TEST_SMALL_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_small_image.png');
 const TEST_IMAGE_URI = 'https://www.example.com/test_image.png';
 
 // require('dotenv').config();
@@ -110,7 +113,7 @@ describe('MediaHandler', () => {
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         width: '477',
         height: '268',
@@ -126,7 +129,7 @@ describe('MediaHandler', () => {
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       lastModified: '01-01-2021',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         'source-last-modified': '01-01-2021',
         src: 'https://www.example.com/test_image.png',
@@ -169,7 +172,7 @@ describe('MediaHandler', () => {
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         'source-last-modified': '01-01-2021',
         src: 'https://www.example.com/test_image.png',
@@ -179,7 +182,7 @@ describe('MediaHandler', () => {
         assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
         assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4');
         assert.deepStrictEqual(extractMeta(this.req.headers), {
-          agent: `blobhandler-${version}`,
+          agent: `mediahandler-${version}`,
           alg: '8k',
           height: '268',
           'source-last-modified': '01-01-2021',
@@ -197,7 +200,7 @@ describe('MediaHandler', () => {
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       lastModified: '01-01-2021',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         'source-last-modified': '01-01-2021',
         src: 'https://www.example.com/test_image.png',
@@ -231,7 +234,7 @@ describe('MediaHandler', () => {
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(200, '', {
         'x-amz-meta-alg': '8k',
-        'x-amz-meta-agent': `blobhandler-${version}`,
+        'x-amz-meta-agent': `mediahandler-${version}`,
         'x-amz-meta-src': 'https://www.example.com/test_image.png',
         'x-amz-meta-width': '477',
         'x-amz-meta-height': '268',
@@ -245,7 +248,7 @@ describe('MediaHandler', () => {
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       lastModified: null,
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         src: 'https://www.example.com/test_image.png',
         height: '268',
@@ -277,7 +280,7 @@ describe('MediaHandler', () => {
       data: null,
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         src: '',
         height: '268',
@@ -306,7 +309,7 @@ describe('MediaHandler', () => {
       sourceUri: '',
       meta: {
         alg: '8k',
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         src: '',
         height: '268',
         width: '477',
@@ -344,7 +347,7 @@ describe('MediaHandler', () => {
       data: null,
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         src: '',
         height: '268',
@@ -373,7 +376,7 @@ describe('MediaHandler', () => {
       data: null,
       hash: '1ba15914a0844f8fcdf49e359df0a2f0bec208613',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         src: 'image.jpg',
       },
@@ -399,7 +402,7 @@ describe('MediaHandler', () => {
       data: null,
       hash: '1086c75d27ff7dba126e9fba302c402f07caa3822',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         src: 'image.png',
         height: '268',
@@ -624,7 +627,7 @@ describe('MediaHandler', () => {
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         height: '268',
         'source-last-modified': '01-01-2021',
@@ -640,7 +643,7 @@ describe('MediaHandler', () => {
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       lastModified: '01-01-2021',
       meta: {
-        agent: `blobhandler-${version}`,
+        agent: `mediahandler-${version}`,
         alg: '8k',
         'source-last-modified': '01-01-2021',
         src: 'https://www.example.com/test_image.png',

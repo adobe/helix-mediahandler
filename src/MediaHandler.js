@@ -11,18 +11,15 @@
  */
 /* eslint-disable no-plusplus,no-param-reassign */
 
-const crypto = require('crypto');
-const { Transform } = require('stream');
-const fetchAPI = require('@adobe/helix-fetch');
-const mime = require('mime');
-const {
-  S3Client,
-  HeadObjectCommand,
-  CopyObjectCommand,
-} = require('@aws-sdk/client-s3');
-const { Upload } = require('@aws-sdk/lib-storage');
-const sizeOf = require('image-size');
-const { version } = require('../package.json');
+import crypto from 'crypto';
+import { Transform } from 'stream';
+
+import { context, h1, timeoutSignal } from '@adobe/helix-fetch';
+import mime from 'mime';
+import { CopyObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import sizeOf from 'image-size';
+import { Upload } from '@aws-sdk/lib-storage';
+import pkgJson from './package.cjs';
 
 sizeOf.disableFS(true);
 
@@ -34,14 +31,14 @@ let requestCounter = 0;
 
 const FETCH_CACHE_SIZE = 10 * 1024 * 1024; // 10mb
 
-const fetchDefaultContext = fetchAPI.context({
+const fetchDefaultContext = context({
   maxCacheSize: FETCH_CACHE_SIZE,
 });
 
 /**
  * Helper class for uploading images to s3 media bus, based on their content checksum (sha1).
  */
-class MediaHandler {
+export default class MediaHandler {
   /**
    * Media handler construction.
    * @param {MediaHandlerOptions} opts - options.
@@ -84,7 +81,7 @@ class MediaHandler {
       // resource name prefix
       _namePrefix: opts.namePrefix || '',
 
-      _blobAgent: opts.blobAgent || `blobhandler-${version}`,
+      _blobAgent: opts.blobAgent || `mediahandler-${pkgJson.version}`,
     });
 
     if (!this._owner || !this._repo || !this._ref || !this._contentBusId) {
@@ -108,8 +105,7 @@ class MediaHandler {
     this.fetchContext = fetchDefaultContext;
     // eslint-disable-next-line no-constant-condition
     if (opts.forceHttp1 || process.env.HELIX_FETCH_FORCE_HTTP1) {
-      this.fetchContext = fetchAPI.context({
-        alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+      this.fetchContext = h1({
         maxCacheSize: FETCH_CACHE_SIZE,
       });
     }
@@ -281,7 +277,7 @@ class MediaHandler {
         'accept-encoding': 'identity',
       },
       cache: 'no-store',
-      signal: this.fetchContext.timeoutSignal(this._fetchTimeout),
+      signal: timeoutSignal(this._fetchTimeout),
     };
     if (this._auth) {
       opts.headers.authorization = this._auth;
@@ -665,5 +661,3 @@ class MediaHandler {
     return segs.join(';');
   }
 }
-
-module.exports = MediaHandler;
