@@ -1,0 +1,45 @@
+# 1.0.0 (2022-01-11)
+
+
+### Bug Fixes
+
+* add extension and fragement to media uri ([#177](https://github.com/adobe/helix-mediahandler/issues/177)) ([48d31d6](https://github.com/adobe/helix-mediahandler/commit/48d31d6827b7f271ee2914572a16297caa7b4d19))
+* **blob:** small images produce NPE ([4b68076](https://github.com/adobe/helix-mediahandler/commit/4b68076576c5814f9ee74a069d63e7326525e014)), closes [#105](https://github.com/adobe/helix-mediahandler/issues/105)
+* **deps:** update external fixes ([#172](https://github.com/adobe/helix-mediahandler/issues/172)) ([a3d8247](https://github.com/adobe/helix-mediahandler/commit/a3d82478f6363531a2ae4608b1d4535ed7e12870))
+* detect dimensions when creating resource ([#170](https://github.com/adobe/helix-mediahandler/issues/170)) ([fc04cdb](https://github.com/adobe/helix-mediahandler/commit/fc04cdb6bdd589ce4348ba23caf172d6c8451410))
+* don't include type in meta ([#171](https://github.com/adobe/helix-mediahandler/issues/171)) ([6bb9b95](https://github.com/adobe/helix-mediahandler/commit/6bb9b95484aa3572c422baec43e5c02d9927f96a))
+* handle stream errors correctly ([#191](https://github.com/adobe/helix-mediahandler/issues/191)) ([fa5e058](https://github.com/adobe/helix-mediahandler/commit/fa5e058d1910b17961d49f6c1b19efef9e9c00d8))
+* **hash:** use better hashing ([f424fc5](https://github.com/adobe/helix-mediahandler/commit/f424fc54a414c8d68e41db51b93623193b833f39))
+* **md:** remove markdown related utils ([#87](https://github.com/adobe/helix-mediahandler/issues/87)) ([0dfde02](https://github.com/adobe/helix-mediahandler/commit/0dfde022bf0cfb47f817858ce189f7a0d9720367))
+* use hlx3.page instead of live ([#176](https://github.com/adobe/helix-mediahandler/issues/176)) ([5213d9c](https://github.com/adobe/helix-mediahandler/commit/5213d9ce8da094ba202d8657ccf9763c0b5fcfc2)), closes [#175](https://github.com/adobe/helix-mediahandler/issues/175)
+
+
+### Features
+
+* **blob:** add methods to upload blob ([#4](https://github.com/adobe/helix-mediahandler/issues/4)) ([a808d7c](https://github.com/adobe/helix-mediahandler/commit/a808d7c64258e73911d6ee954d78276e287ce2d6))
+* compute image dimensions and store in metadata ([#169](https://github.com/adobe/helix-mediahandler/issues/169)) ([e4317b5](https://github.com/adobe/helix-mediahandler/commit/e4317b50d71165cc4f5cf7db58e05bd64cf077a7)), closes [#167](https://github.com/adobe/helix-mediahandler/issues/167)
+* image dimension limit for QR decoding ([f1423f7](https://github.com/adobe/helix-mediahandler/commit/f1423f7260f80b7951e9c69a95ee71b681e3ab22)), closes [#17](https://github.com/adobe/helix-mediahandler/issues/17)
+* implement media bus support ([825aeda](https://github.com/adobe/helix-mediahandler/commit/825aeda3d2695be35b2b6802186227f0d980c4b1)), closes [#163](https://github.com/adobe/helix-mediahandler/issues/163)
+* **md:** add common helpers ([#56](https://github.com/adobe/helix-mediahandler/issues/56)) ([5919d20](https://github.com/adobe/helix-mediahandler/commit/5919d203954f18a9a06d8e63be8801c621dc820e))
+* **md:** make tables more robust ([#58](https://github.com/adobe/helix-mediahandler/issues/58)) ([58d25bf](https://github.com/adobe/helix-mediahandler/commit/58d25bf56ed37f333eb2531932e870b73de25d1f))
+* **md:** make tables more robust ([#59](https://github.com/adobe/helix-mediahandler/issues/59)) ([6852ea5](https://github.com/adobe/helix-mediahandler/commit/6852ea55fcdc1c9508567a8b8cfbccf56cbe7db7))
+* use ESM ([15be4e4](https://github.com/adobe/helix-mediahandler/commit/15be4e443060bc6424df1c6d2e712c69b8f35540))
+
+
+### BREAKING CHANGES
+
+* only esm supported
+* **hash:** the API and interfaces changed
+
+- blob.sha1 was removed
+- blob.hash and blob.uri now contain the 8k hash
+- blob.hashV0 and blob.uriV0 contains the 1k hash
+- QR code support was removed
+- blob.meta contains the blob-agent and the hash alg (=8k)
+- BlobHandler.process() was removed
+- BlobHandler.needsProcess() was removed
+- users can provide any blob.meta. but it's only written when creating the blob
+- new method: BlobHandler.fetchMeta()
+- backward compatibility: if a blob is not found using the 8k hash, it tries to fetch it via the 1k hash this should reduce the amount of new blobs generated due to word2md generation (only if legacyCheck options is enabled)
+* **md:** the markdown related utils were moved to
+                 @adobe/helix-markdown-support
