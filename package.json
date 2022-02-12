@@ -25,9 +25,9 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/helix-fetch": "3.0.3",
-    "@aws-sdk/abort-controller": "3.49.0",
-    "@aws-sdk/client-s3": "3.49.0",
-    "@aws-sdk/lib-storage": "3.49.0",
+    "@aws-sdk/abort-controller": "3.50.0",
+    "@aws-sdk/client-s3": "3.51.0",
+    "@aws-sdk/lib-storage": "3.51.0",
     "image-size": "1.0.1",
     "mime": "3.0.0"
   },
@@ -38,7 +38,7 @@
     "c8": "7.11.0",
     "codecov": "3.8.3",
     "dotenv": "16.0.0",
-    "eslint": "8.8.0",
+    "eslint": "8.9.0",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.25.4",
     "fs-extra": "10.0.0",
