@@ -26,8 +26,8 @@
   "dependencies": {
     "@adobe/helix-fetch": "3.0.7",
     "@aws-sdk/abort-controller": "3.55.0",
-    "@aws-sdk/client-s3": "3.56.0",
-    "@aws-sdk/lib-storage": "3.56.0",
+    "@aws-sdk/client-s3": "3.58.0",
+    "@aws-sdk/lib-storage": "3.58.0",
     "image-size": "1.0.1",
     "mime": "3.0.0"
   },
