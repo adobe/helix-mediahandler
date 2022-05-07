@@ -26,8 +26,8 @@
   "dependencies": {
     "@adobe/helix-fetch": "3.0.9",
     "@aws-sdk/abort-controller": "3.78.0",
-    "@aws-sdk/client-s3": "3.81.0",
-    "@aws-sdk/lib-storage": "3.81.0",
+    "@aws-sdk/client-s3": "3.86.0",
+    "@aws-sdk/lib-storage": "3.86.0",
     "image-size": "1.0.1",
     "mime": "3.0.0"
   },
@@ -38,7 +38,7 @@
     "c8": "7.11.2",
     "codecov": "3.8.3",
     "dotenv": "16.0.0",
-    "eslint": "8.14.0",
+    "eslint": "8.15.0",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.26.0",
     "fs-extra": "10.1.0",
