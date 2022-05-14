@@ -1,3 +1,10 @@
+## [1.0.23](https://github.com/adobe/helix-mediahandler/compare/v1.0.22...v1.0.23) (2022-05-14)
+
+
+### Bug Fixes
+
+* generate correct dimensions fragment ([28c48de](https://github.com/adobe/helix-mediahandler/commit/28c48de9dc7b96896f61f22bc9616119101bb1fc)), closes [#38](https://github.com/adobe/helix-mediahandler/issues/38)
+
 ## [1.0.22](https://github.com/adobe/helix-mediahandler/compare/v1.0.21...v1.0.22) (2022-05-07)
 
 
