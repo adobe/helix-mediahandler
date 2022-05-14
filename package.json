@@ -7,7 +7,6 @@
   "types": "src/index.d.ts",
   "scripts": {
     "test": " c8 mocha",
-    "test-ci": "c8 mocha && codecov",
     "lint": "eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx typedoc --options .typedoc.cjs",
@@ -36,7 +35,6 @@
     "@semantic-release/changelog": "6.0.1",
     "@semantic-release/git": "10.0.1",
     "c8": "7.11.2",
-    "codecov": "3.8.3",
     "dotenv": "16.0.0",
     "eslint": "8.15.0",
     "eslint-plugin-header": "3.1.1",
