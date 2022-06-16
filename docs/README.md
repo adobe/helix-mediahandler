@@ -12,11 +12,11 @@
 - [MediaMeta](interfaces/MediaMeta.md)
 - [MediaResource](interfaces/MediaResource.md)
 
-### Type aliases
+### Type Aliases
 
 - [MediaFilter](README.md#mediafilter)
 
-## Type aliases
+## Type Aliases
 
 ### MediaFilter
 
