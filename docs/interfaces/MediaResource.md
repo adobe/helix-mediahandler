@@ -147,6 +147,6 @@ ___
 
 • **uri**: `string`
 
-URI of the media resource in the format `https://{ref}--{repo}--{owner}.hlx3.page/media_{sha}`
+URI of the media resource in the format `https://{ref}--{repo}--{owner}.hlx.page/media_{sha}`
 
-**`example`** "https://ref--repo--owner.hlx3.page/media_xxxxyyyyzzzz.png#width=477&width=268"
+**`example`** "https://ref--repo--owner.hlx.page/media_xxxxyyyyzzzz.png#width=477&width=268"
