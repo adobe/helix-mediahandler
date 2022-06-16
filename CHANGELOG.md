@@ -1,3 +1,10 @@
+## [1.0.29](https://github.com/adobe/helix-mediahandler/compare/v1.0.28...v1.0.29) (2022-06-16)
+
+
+### Bug Fixes
+
+* use hlx.page instead of hlx3.page ([#47](https://github.com/adobe/helix-mediahandler/issues/47)) ([c0e2fe9](https://github.com/adobe/helix-mediahandler/commit/c0e2fe96a64e86073fdfa0a997db33903b87fdd5)), closes [#45](https://github.com/adobe/helix-mediahandler/issues/45)
+
 ## [1.0.28](https://github.com/adobe/helix-mediahandler/compare/v1.0.27...v1.0.28) (2022-06-11)
 
 
