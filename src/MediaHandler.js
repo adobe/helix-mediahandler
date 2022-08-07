@@ -482,7 +482,7 @@ export default class MediaHandler {
   /**
    * Puts the blob to the blob store.
    * @param {MediaResource} blob - the resource object.
-   * @returns {boolean} `true` if the upload succeeded.
+   * @returns {Promise<boolean>} `true` if the upload succeeded.
    */
   async put(blob) {
     const { log } = this;

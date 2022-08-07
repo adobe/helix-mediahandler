@@ -458,7 +458,6 @@ describe('MediaHandler', () => {
       .putObject({
         alg: '8k',
         agent: 'blob-test',
-        src: '',
         width: '477',
         height: '268',
       });
@@ -514,7 +513,6 @@ describe('MediaHandler', () => {
       .putObject({
         alg: '8k',
         agent: 'blob-test',
-        src: '',
         height: '74',
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
