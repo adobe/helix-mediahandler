@@ -1,3 +1,10 @@
+## [1.0.38](https://github.com/adobe/helix-mediahandler/compare/v1.0.37...v1.0.38) (2022-08-07)
+
+
+### Bug Fixes
+
+* **deps:** update external fixes to v3.142.0 ([#58](https://github.com/adobe/helix-mediahandler/issues/58)) ([99d8e4d](https://github.com/adobe/helix-mediahandler/commit/99d8e4dfaa05e3c6ac920e060f90325691e367b7))
+
 ## [1.0.37](https://github.com/adobe/helix-mediahandler/compare/v1.0.36...v1.0.37) (2022-08-02)
 
 
