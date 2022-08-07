@@ -251,7 +251,7 @@ export declare class MediaHandler {
    * @param {number} contentLength - Size of blob.
    * @param {string} [contentType] - content type
    * @param {string} [sourceUri] - source uri
-   * @returns {ExternalResource} the external resource object.
+   * @returns {MediaResource} the external resource object.
    */
   createMediaResource(buffer: Buffer, contentLength: number, contentType?: string, sourceUri?: string): MediaResource;
 
@@ -261,7 +261,7 @@ export declare class MediaHandler {
    * @param {number} [contentLength] - Size of blob.
    * @param {string} [contentType] - content type
    * @param {string} [sourceUri] - source uri
-   * @returns {ExternalResource} the external resource object.
+   * @returns {Promise<MediaResource>} the external resource object.
    */
   createMediaResourceFromStream(stream: stream.Readable, contentLength: number, contentType?:string, sourceUri?: string): Promise<MediaResource>;
 
@@ -269,8 +269,8 @@ export declare class MediaHandler {
    * Checks if the blob already exists using a GET request to the blob's metadata.
    * On success, it also updates the metadata of the external resource.
    *
-   * @param {ExternalResource} blob - the resource object.
-   * @returns {boolean} `true` if the resource exists.
+   * @param {MediaResource} blob - the resource object.
+   * @returns {Promise<boolean>} `true` if the resource exists.
    */
   checkBlobExists(blob: MediaResource): Promise<boolean>;
 
@@ -278,13 +278,14 @@ export declare class MediaHandler {
    * Fetches the header (1024 bytes) of the resource assuming the server supports range requests.
    *
    * @param {string} uri Resource URI
-   * @returns {ExternalResource} resource information
+   * @returns {Promise<MediaResource>} resource information
    */
   fetchHeader(uri: string): Promise<MediaResource>;
 
   /**
    * Stores the metadata of the blob in the media bus.
    * @param {ExternalResource} blob
+   * @return {Promise<void>}
    */
   putMetaData(blob: MediaResource): Promise<void>;
 
@@ -294,31 +295,31 @@ export declare class MediaHandler {
    *
    * @param {string} uri - URI of the external resource.
    * @param {string} [src] - source document (meta.src). defaults to `uri`.
-   * @returns {ExternalResource} the external resource object or null if not exists.
+   * @returns {Promise<MediaResource>} the external resource object or null if not exists.
    */
   getBlob(uri: string, src?: string): Promise<MediaResource>;
 
   /**
    * Uploads the blob to the blob store. If the blob has not data, it is _spooled_ from the
    * source uri.
-   * @param {ExternalResource} blob - the resource object.
-   * @returns {boolean} `true` if the upload succeeded.
+   * @param {MediaResource} blob - the resource object.
+   * @returns {Promise<boolean>} `true` if the upload succeeded.
    */
   upload(blob: MediaResource): Promise<boolean>;
 
   /**
    * Puts the blob to the blob store.
    *
-   * @param {ExternalResource} blob - the resource object.
-   * @returns {boolean} `true` if the upload succeeded.
+   * @param {MediaResource} blob - the resource object.
+   * @returns {Promise<boolean>} `true` if the upload succeeded.
    */
   put(blob: MediaResource): Promise<boolean>;
 
   /**
    * Transfers the blob to the azure storage.
    *
-   * @param {ExternalResource} blob The resource to transfer.
-   * @returns {boolean} {@code true} if successful.
+   * @param {MediaResource} blob The resource to transfer.
+   * @returns {Promise<boolean>} {@code true} if successful.
    */
   spool(blob: MediaResource): Promise<boolean>;
 }
