@@ -107,6 +107,7 @@ export default class MediaHandler {
     this._log.info('Creating R2 S3Client');
     this._r2 = new S3Client({
       endpoint: `https://${this._r2AccountId}.r2.cloudflarestorage.com`,
+      region: 'us-east-1',
       credentials: {
         accessKeyId: this._r2AccessKeyId,
         secretAccessKey: this._r2SecretAccessKey,
