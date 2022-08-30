@@ -24,9 +24,9 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/helix-fetch": "3.1.2",
-    "@aws-sdk/abort-controller": "3.159.0",
-    "@aws-sdk/client-s3": "3.159.0",
-    "@aws-sdk/lib-storage": "3.159.0",
+    "@aws-sdk/abort-controller": "3.160.0",
+    "@aws-sdk/client-s3": "3.160.0",
+    "@aws-sdk/lib-storage": "3.160.0",
     "image-size": "1.0.2",
     "mime": "3.0.0"
   },
@@ -34,7 +34,7 @@
     "@adobe/eslint-config-helix": "1.3.2",
     "@semantic-release/changelog": "6.0.1",
     "@semantic-release/git": "10.0.1",
-    "@types/node": "18.0.0",
+    "@types/node": "18.7.14",
     "c8": "7.12.0",
     "dotenv": "16.0.1",
     "eslint": "8.23.0",
@@ -50,7 +50,7 @@
     "semantic-release": "19.0.5",
     "typedoc": "0.23.11",
     "typedoc-plugin-markdown": "3.13.4",
-    "typescript": "4.7.4"
+    "typescript": "4.8.2"
   },
   "mocha": {
     "require": "test/setup-env.js",
