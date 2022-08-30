@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/adobe/helix-mediahandler/compare/v1.0.42...v1.1.0) (2022-08-30)
+
+
+### Features
+
+* R2 mirror ([83cf611](https://github.com/adobe/helix-mediahandler/commit/83cf611966c8abea890e7cefaf2b94459624ba98))
+
 ## [1.0.42](https://github.com/adobe/helix-mediahandler/compare/v1.0.41...v1.0.42) (2022-08-27)
 
 
