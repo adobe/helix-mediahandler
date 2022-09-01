@@ -558,7 +558,7 @@ export default class MediaHandler {
           transform(chunk, encoding, callback) {
             /* istanbul ignore next */
             if (bufferSize < 1024 * 1024) {
-              log.debug(`[${c}] cache buffer ${chunk.length}.`);
+              // log.debug(`[${c}] cache buffer ${chunk.length}.`);
               buffers.push(chunk);
               bufferSize += chunk.length;
             }
