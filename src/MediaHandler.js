@@ -198,7 +198,7 @@ export default class MediaHandler {
         while (null !== (chunk = stream.read())) {
           chunks.push(chunk);
           read += chunk.length;
-          if (read > readMax) {
+          if (read >= readMax) {
             done();
             break;
           }
