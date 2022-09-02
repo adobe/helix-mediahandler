@@ -32,8 +32,6 @@
   },
   "devDependencies": {
     "@adobe/eslint-config-helix": "1.3.2",
-    "@adobe/helix-shared-process-queue": "1.1.5",
-    "@adobe/mammoth": "1.4.15-bleeding.1",
     "@semantic-release/changelog": "6.0.1",
     "@semantic-release/git": "10.0.1",
     "@types/node": "18.7.14",
