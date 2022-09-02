@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/adobe/helix-mediahandler/compare/v1.1.1...v1.1.2) (2022-09-02)
+
+
+### Bug Fixes
+
+* pre-reading first 8kb ([76e3077](https://github.com/adobe/helix-mediahandler/commit/76e30775a0dcfa163f222b752479f424021d470f))
+
 ## [1.1.1](https://github.com/adobe/helix-mediahandler/compare/v1.1.0...v1.1.1) (2022-09-01)
 
 
