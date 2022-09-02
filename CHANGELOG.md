@@ -1,3 +1,17 @@
+## [1.1.1](https://github.com/adobe/helix-mediahandler/compare/v1.1.0...v1.1.1) (2022-09-01)
+
+
+### Bug Fixes
+
+* trigger release of reverted r2 sync ([dd6c933](https://github.com/adobe/helix-mediahandler/commit/dd6c93390e7f43f6d658c96c6bf75343a94b5541))
+
+# [1.1.0](https://github.com/adobe/helix-mediahandler/compare/v1.0.42...v1.1.0) (2022-08-30)
+
+
+### Features
+
+* R2 mirror ([83cf611](https://github.com/adobe/helix-mediahandler/commit/83cf611966c8abea890e7cefaf2b94459624ba98))
+
 ## [1.0.42](https://github.com/adobe/helix-mediahandler/compare/v1.0.41...v1.0.42) (2022-08-27)
 
 

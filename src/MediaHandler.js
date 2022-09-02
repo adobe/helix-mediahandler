@@ -12,7 +12,7 @@
 /* eslint-disable no-plusplus,no-param-reassign */
 
 import crypto from 'crypto';
-import { PassThrough, Transform } from 'stream';
+import { Transform } from 'stream';
 
 import { context, h1, timeoutSignal } from '@adobe/helix-fetch';
 import mime from 'mime';
@@ -48,9 +48,6 @@ export default class MediaHandler {
       _awsRegion: opts.awsRegion || process.env.AWS_S3_REGION,
       _awsAccessKeyId: opts.awsAccessKeyId || process.env.AWS_S3_ACCESS_KEY_ID,
       _awsSecretAccessKey: opts.awsSecretAccessKey || process.env.AWS_S3_SECRET_ACCESS_KEY,
-      _r2AccountId: opts.r2AccountId || process.env.CLOUDFLARE_ACCOUNT_ID,
-      _r2AccessKeyId: opts.r2AccessKeyId || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
-      _r2SecretAccessKey: opts.r2SecretAccessKey || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
       _bucketId: opts.bucketId || 'helix-media-bus',
       _contentBusId: opts.contentBusId,
       _owner: opts.owner,
@@ -104,15 +101,6 @@ export default class MediaHandler {
       this._log.info('Creating S3Client without credentials');
       this._s3 = new S3Client();
     }
-    this._log.info('Creating R2 S3Client');
-    this._r2 = new S3Client({
-      endpoint: `https://${this._r2AccountId}.r2.cloudflarestorage.com`,
-      region: 'us-east-1',
-      credentials: {
-        accessKeyId: this._r2AccessKeyId,
-        secretAccessKey: this._r2SecretAccessKey,
-      },
-    });
 
     this.fetchContext = fetchDefaultContext;
     // eslint-disable-next-line no-constant-condition
@@ -163,7 +151,7 @@ export default class MediaHandler {
   }
 
   /**
-   * Creates an external resource from the given stream and properties.
+   * Creates an external resource from the given buffer and properties.
    * @param {Readable} stream - readable stream
    * @param {number} [contentLength] - Size of blob.
    * @param {string} [contentType] - content type
@@ -432,29 +420,19 @@ export default class MediaHandler {
   async putMetaData(blob) {
     const { log } = this;
     const c = requestCounter++;
-
-    const cmd = new CopyObjectCommand({
-      Bucket: this._bucketId,
-      Key: blob.storageKey,
-      CopySource: `${this._bucketId}/${blob.storageKey}`,
-      Metadata: blob.meta,
-      MetadataDirective: 'REPLACE',
-    });
-    log.debug(`[${c}] COPY ${blob.storageUri}`);
-    // send cmd to s3 and r2 (mirror) in parallel
-    const result = await Promise.allSettled([
-      this._s3.send(cmd),
-      this._r2.send(cmd),
-    ]);
-    const rejected = result.filter(({ status }) => status === 'rejected');
-    if (!rejected.length) {
+    try {
+      log.debug(`[${c}] COPY ${blob.storageUri}`);
+      await this._s3.send(new CopyObjectCommand({
+        Bucket: this._bucketId,
+        Key: blob.storageKey,
+        CopySource: `${this._bucketId}/${blob.storageKey}`,
+        Metadata: blob.meta,
+        MetadataDirective: 'REPLACE',
+      }));
       log.info(`[${c}] Metadata updated for: ${blob.storageUri}`);
       MediaHandler.updateBlobURI(blob);
-    } else {
-      // at least 1 cmd failed
-      const type = result[0].status === 'rejected' ? 'S3' : 'R2';
-      const e = rejected[0].reason;
-      log.info(`[${c}] [${type}] Failed to update metadata for ${blob.storageUri}: ${e.$metadata.httpStatusCode || e.message}`);
+    } catch (e) {
+      log.info(`[${c}] Failed to update metadata for ${blob.storageUri}: ${e.$metadata.httpStatusCode || e.message}`);
     }
   }
 
@@ -553,7 +531,7 @@ export default class MediaHandler {
           blob.meta.height = height;
         }
       } else {
-        // create transform stream and store the first mb
+        // create transfer stream and store the first mb
         const capture = new Transform({
           transform(chunk, encoding, callback) {
             /* istanbul ignore next */
@@ -569,55 +547,27 @@ export default class MediaHandler {
       }
     }
 
-    const params = {
-      Bucket: this._bucketId,
-      Key: blob.storageKey,
-      Body: blob.data || blob.stream,
-      ContentType: blob.contentType,
-      Metadata: blob.meta,
-    };
-
-    let s3Body;
-    let r2Body;
-    if (!Buffer.isBuffer(params.Body)) {
-      // Body is a stream:
-      const stream = params.Body;
-      // need to create separate readable streams for s3 and r2
-      s3Body = new PassThrough();
-      r2Body = new PassThrough();
-      stream.pipe(s3Body);
-      stream.pipe(r2Body);
-    } else {
-      // Body is a buffer
-      s3Body = params.Body;
-      r2Body = params.Body;
-    }
-    const s3Upload = new Upload({
+    const upload = new Upload({
       client: this._s3,
-      params: { ...params, Body: s3Body },
-    });
-    const r2Upload = new Upload({
-      client: this._r2,
-      params: { ...params, Body: r2Body },
+      params: {
+        Bucket: this._bucketId,
+        Key: blob.storageKey,
+        Body: blob.data || blob.stream,
+        ContentType: blob.contentType,
+        Metadata: blob.meta,
+      },
     });
 
-    // upload to s3 and r2 (mirror) in parallel
-    const result = await Promise.allSettled([
-      s3Upload.done(),
-      r2Upload.done(),
-    ]);
-    const rejected = result.filter(({ status }) => status === 'rejected');
-    // discard data
-    delete blob.stream;
-    delete blob.data;
-    if (!rejected.length) {
-      log.info(`[${c}] Upload done ${blob.storageKey}: ${result[0].value.Location}`);
-    } else {
-      // at least 1 cmd failed
-      const type = result[0].status === 'rejected' ? 'S3' : 'R2';
-      const e = rejected[0].reason;
-      log.error(`[${c}] [${type}]: Failed to upload blob ${blob.storageKey}: ${e.status || e.message}`);
+    try {
+      const result = await upload.done();
+      log.info(`[${c}] Upload done ${blob.storageKey}: ${result.Location}`);
+    } catch (e) {
+      log.error(`[${c}] Failed to upload blob ${blob.storageKey}: ${e.status || e.message}`);
       return false;
+    } finally {
+      // discard data
+      delete blob.stream;
+      delete blob.data;
     }
 
     // check if we need to update the metadata with the dimensions
