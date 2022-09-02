@@ -32,6 +32,9 @@ const DEFAULT_OPTS = {
   awsRegion: 'us-east-1',
   awsAccessKeyId: 'fake',
   awsSecretAccessKey: 'fake',
+  r2AccountId: 'fake',
+  r2AccessKeyId: 'fake',
+  r2SecretAccessKe: 'fake',
 };
 
 function extractMeta(hdrs) {
