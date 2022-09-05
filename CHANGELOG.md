@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/adobe/helix-mediahandler/compare/v1.1.2...v1.2.0) (2022-09-05)
+
+
+### Features
+
+* allow to disable R2 client ([#67](https://github.com/adobe/helix-mediahandler/issues/67)) ([81076dd](https://github.com/adobe/helix-mediahandler/commit/81076dd4f82c0eee91d683d07978e47b420585b0))
+
 ## [1.1.2](https://github.com/adobe/helix-mediahandler/compare/v1.1.1...v1.1.2) (2022-09-02)
 
 
