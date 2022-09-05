@@ -91,6 +91,8 @@ export default class MediaHandler {
       throw Error('owner, repo, ref, and contentBusId are mandatory parameters.');
     }
 
+    const disableR2 = opts.disableR2 || process.env.HELIX_MEDIA_HANDLER_DISABLE_R2;
+
     if (this._awsRegion && this._awsAccessKeyId && this._awsSecretAccessKey) {
       this._log.info('Creating S3Client with credentials');
       this._s3 = new S3Client({
@@ -104,15 +106,19 @@ export default class MediaHandler {
       this._log.info('Creating S3Client without credentials');
       this._s3 = new S3Client();
     }
-    this._log.info('Creating R2 S3Client');
-    this._r2 = new S3Client({
-      endpoint: `https://${this._r2AccountId}.r2.cloudflarestorage.com`,
-      region: 'us-east-1',
-      credentials: {
-        accessKeyId: this._r2AccessKeyId,
-        secretAccessKey: this._r2SecretAccessKey,
-      },
-    });
+    if (disableR2) {
+      this._log.info('R2 S3Client disabled.');
+    } else {
+      this._log.info('Creating R2 S3Client');
+      this._r2 = new S3Client({
+        endpoint: `https://${this._r2AccountId}.r2.cloudflarestorage.com`,
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: this._r2AccessKeyId,
+          secretAccessKey: this._r2SecretAccessKey,
+        },
+      });
+    }
 
     this.fetchContext = fetchDefaultContext;
     // eslint-disable-next-line no-constant-condition
@@ -444,7 +450,9 @@ export default class MediaHandler {
     // send cmd to s3 and r2 (mirror) in parallel
     const result = await Promise.allSettled([
       this._s3.send(cmd),
-      this._r2.send(cmd),
+      this._r2
+        ? this._r2.send(cmd)
+        : Promise.resolve(),
     ]);
     const rejected = result.filter(({ status }) => status === 'rejected');
     if (!rejected.length) {
@@ -584,9 +592,11 @@ export default class MediaHandler {
       const stream = params.Body;
       // need to create separate readable streams for s3 and r2
       s3Body = new PassThrough();
-      r2Body = new PassThrough();
       stream.pipe(s3Body);
-      stream.pipe(r2Body);
+      if (this._r2) {
+        r2Body = new PassThrough();
+        stream.pipe(r2Body);
+      }
     } else {
       // Body is a buffer
       s3Body = params.Body;
@@ -596,15 +606,17 @@ export default class MediaHandler {
       client: this._s3,
       params: { ...params, Body: s3Body },
     });
-    const r2Upload = new Upload({
-      client: this._r2,
-      params: { ...params, Body: r2Body },
-    });
+    const r2Upload = this._r2
+      ? new Upload({
+        client: this._r2,
+        params: { ...params, Body: r2Body },
+      })
+      : null;
 
     // upload to s3 and r2 (mirror) in parallel
     const result = await Promise.allSettled([
       s3Upload.done(),
-      r2Upload.done(),
+      r2Upload ? r2Upload.done() : Promise.resolve(),
     ]);
     const rejected = result.filter(({ status }) => status === 'rejected');
     // discard data
