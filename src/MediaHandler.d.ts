@@ -231,6 +231,12 @@ export declare interface MediaHandlerOptions {
    * @default 5mb
    */
   uploadBufferSize?: number,
+
+  /**
+   * if set, content will never be written to R2
+   * @default `process.env.HELIX_MEDIA_HANDLER_DISABLE_R2`
+   */
+  disableR2?: boolean,
 }
 
 /**

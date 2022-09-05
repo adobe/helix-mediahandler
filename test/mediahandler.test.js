@@ -86,6 +86,15 @@ Scope.prototype.putObject = function putObject(expectedMeta, sha = '18bb2f0e55ff
 };
 
 describe('MediaHandler', () => {
+  let savedEnv;
+  beforeEach(() => {
+    savedEnv = { ...process.env };
+  });
+
+  afterEach(() => {
+    process.env = savedEnv;
+  });
+
   ['owner', 'repo', 'ref', 'contentBusId'].forEach((prop) => {
     it(`fails if no ${prop}`, async () => {
       const opts = {
@@ -594,6 +603,50 @@ describe('MediaHandler', () => {
     assert.strictEqual(await handler.put(blob), true);
     scope1.done();
     scope2.done();
+  });
+
+  it('can disable R2 via options', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      disableR2: true,
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+
+    assert.strictEqual(await handler.put(blob), true);
+    scope1.done();
+  });
+
+  it('can disable R2 via env', async () => {
+    process.env.HELIX_MEDIA_HANDLER_DISABLE_R2 = 'true';
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+
+    assert.strictEqual(await handler.put(blob), true);
+    scope1.done();
   });
 
   it('filter rejects blob', async () => {
