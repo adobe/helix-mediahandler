@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/adobe/helix-mediahandler/compare/v1.2.1...v1.2.2) (2022-09-11)
+
+
+### Bug Fixes
+
+* improve resilience of s3 write ops ([c21ac95](https://github.com/adobe/helix-mediahandler/commit/c21ac9543824084dc14dd41277b28086756e2cb6))
+
 ## [1.2.1](https://github.com/adobe/helix-mediahandler/compare/v1.2.0...v1.2.1) (2022-09-10)
 
 
