@@ -439,19 +439,19 @@ export default class MediaHandler {
     const { log } = this;
     const c = requestCounter++;
 
-    const cmd = new CopyObjectCommand({
+    const input = {
       Bucket: this._bucketId,
       Key: blob.storageKey,
       CopySource: `${this._bucketId}/${blob.storageKey}`,
       Metadata: blob.meta,
       MetadataDirective: 'REPLACE',
-    });
+    };
     log.debug(`[${c}] COPY ${blob.storageUri}`);
     // send cmd to s3 and r2 (mirror) in parallel
     const result = await Promise.allSettled([
-      this._s3.send(cmd),
+      this._s3.send(new CopyObjectCommand(input)),
       this._r2
-        ? this._r2.send(cmd)
+        ? this._r2.send(new CopyObjectCommand(input))
         : Promise.resolve(),
     ]);
     const rejected = result.filter(({ status }) => status === 'rejected');
