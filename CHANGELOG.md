@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/adobe/helix-mediahandler/compare/v1.2.3...v1.2.4) (2022-09-23)
+
+
+### Bug Fixes
+
+* @adobe/helix-fetch -> @adobe/fetch ([1a35040](https://github.com/adobe/helix-mediahandler/commit/1a35040f13fece9ab3ac8eed75c4fc6ffdc874e1))
+
 ## [1.2.3](https://github.com/adobe/helix-mediahandler/compare/v1.2.2...v1.2.3) (2022-09-17)
 
 
