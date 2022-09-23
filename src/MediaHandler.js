@@ -14,7 +14,7 @@
 import crypto from 'crypto';
 import { PassThrough, Transform } from 'stream';
 
-import { context, h1, timeoutSignal } from '@adobe/helix-fetch';
+import { context, h1, timeoutSignal } from '@adobe/fetch';
 import mime from 'mime';
 import { CopyObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import sizeOf from 'image-size';
