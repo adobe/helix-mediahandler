@@ -1,3 +1,10 @@
+## [1.2.7](https://github.com/adobe/helix-mediahandler/compare/v1.2.6...v1.2.7) (2022-10-06)
+
+
+### Bug Fixes
+
+* better content-type detection ([#74](https://github.com/adobe/helix-mediahandler/issues/74)) ([daa01e4](https://github.com/adobe/helix-mediahandler/commit/daa01e43bf1426ead942d394572bbc8480e7855e)), closes [#17](https://github.com/adobe/helix-mediahandler/issues/17)
+
 ## [1.2.6](https://github.com/adobe/helix-mediahandler/compare/v1.2.5...v1.2.6) (2022-10-01)
 
 
