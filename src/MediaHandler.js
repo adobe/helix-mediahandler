@@ -157,7 +157,7 @@ export default class MediaHandler {
     return MediaHandler.updateBlobURI({
       sourceUri,
       data: buffer.length === contentLength ? buffer : null,
-      contentType: contentType || type || mime.getType(sourceUri) || 'application/octet-stream',
+      contentType: MediaHandler.getContentType(type, contentType, sourceUri),
       ...resource,
       meta: {
         alg: '8k',
@@ -227,7 +227,7 @@ export default class MediaHandler {
     return MediaHandler.updateBlobURI({
       sourceUri,
       stream,
-      contentType: contentType || type || mime.getType(sourceUri) || 'application/octet-stream',
+      contentType: MediaHandler.getContentType(type, contentType, sourceUri),
       ...resource,
       meta: {
         alg: '8k',
@@ -379,7 +379,7 @@ export default class MediaHandler {
     // compute the content type
     let contentType = res.headers.get('content-type');
     if (!contentType) {
-      contentType = type || mime.getType(uri) || 'application/octet-stream';
+      contentType = MediaHandler.getContentType(type, undefined, uri);
     }
 
     // compute hashes
@@ -747,5 +747,20 @@ export default class MediaHandler {
       }
     }
     return segs.join(';');
+  }
+
+  /**
+   * Returns the best content type. Prioritizes the detected content type over the hinted one over
+   * the one derived from the uri. By also favoring non application/octet-stream ones.
+   */
+  static getContentType(detectedType, hintedType, uri) {
+    const uriType = mime.getType(uri);
+    // get first non octet stream type
+    for (const type of [detectedType, hintedType, uriType]) {
+      if (type && type !== 'application/octet-stream') {
+        return type;
+      }
+    }
+    return 'application/octet-stream';
   }
 }

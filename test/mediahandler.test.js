@@ -875,15 +875,22 @@ describe('MediaHandler', () => {
   });
 
   it('sanitizes content type', () => {
-    assert.equal(MediaHandler.sanitizeContentType(undefined), undefined);
-    assert.equal(MediaHandler.sanitizeContentType(''), '');
-    assert.equal(MediaHandler.sanitizeContentType('image/jpg'), 'image/jpeg');
-    assert.equal(MediaHandler.sanitizeContentType('image/JPEG'), 'image/jpeg');
-    assert.equal(MediaHandler.sanitizeContentType('image/JPEG;charset=utf-8'), 'image/jpeg');
-    assert.equal(MediaHandler.sanitizeContentType('image/gif ; charset=utf-8'), 'image/gif');
-    assert.equal(MediaHandler.sanitizeContentType('image/gif ; q=.7'), 'image/gif;q=.7');
-    assert.equal(MediaHandler.sanitizeContentType('image/png ; charset=utf-8'), 'image/png');
-    assert.equal(MediaHandler.sanitizeContentType('  application/octet-stream ; charset=utf-8'), 'application/octet-stream');
-    assert.equal(MediaHandler.sanitizeContentType('text/html;charset=UTF-8'), 'text/html;charset=utf-8');
+    assert.strictEqual(MediaHandler.sanitizeContentType(undefined), undefined);
+    assert.strictEqual(MediaHandler.sanitizeContentType(''), '');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/jpg'), 'image/jpeg');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/JPEG'), 'image/jpeg');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/JPEG;charset=utf-8'), 'image/jpeg');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/gif ; charset=utf-8'), 'image/gif');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/gif ; q=.7'), 'image/gif;q=.7');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/png ; charset=utf-8'), 'image/png');
+    assert.strictEqual(MediaHandler.sanitizeContentType('  application/octet-stream ; charset=utf-8'), 'application/octet-stream');
+    assert.strictEqual(MediaHandler.sanitizeContentType('text/html;charset=UTF-8'), 'text/html;charset=utf-8');
+  });
+
+  it('uses best content type', () => {
+    assert.strictEqual(MediaHandler.getContentType(), 'application/octet-stream');
+    assert.strictEqual(MediaHandler.getContentType('image/jpg', 'image/png', 'baz.jpg'), 'image/jpg');
+    assert.strictEqual(MediaHandler.getContentType('', 'image/png', 'baz.jpg'), 'image/png');
+    assert.strictEqual(MediaHandler.getContentType('application/octet-stream', '', 'baz.png'), 'image/png');
   });
 });
