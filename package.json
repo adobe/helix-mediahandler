@@ -24,9 +24,9 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/fetch": "3.3.0",
-    "@aws-sdk/abort-controller": "3.212.0",
-    "@aws-sdk/client-s3": "3.213.0",
-    "@aws-sdk/lib-storage": "3.213.0",
+    "@aws-sdk/abort-controller": "3.215.0",
+    "@aws-sdk/client-s3": "3.216.0",
+    "@aws-sdk/lib-storage": "3.216.0",
     "image-size": "1.0.2",
     "mime": "3.0.0"
   },
@@ -43,7 +43,7 @@
     "fs-extra": "10.1.0",
     "husky": "8.0.2",
     "junit-report-builder": "3.0.1",
-    "lint-staged": "13.0.3",
+    "lint-staged": "13.0.4",
     "mocha": "10.1.0",
     "mocha-multi-reporters": "1.5.1",
     "nock": "13.2.9",
