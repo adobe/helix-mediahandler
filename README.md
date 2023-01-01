@@ -19,3 +19,4 @@ $ npm install @adobe/helix-mediahandler
 # API Reference
 
 see [API Documentation](./docs/README.md)
+test
