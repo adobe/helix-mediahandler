@@ -25,8 +25,8 @@
   "dependencies": {
     "@adobe/fetch": "3.3.1",
     "@aws-sdk/abort-controller": "3.226.0",
-    "@aws-sdk/client-s3": "3.241.0",
-    "@aws-sdk/lib-storage": "3.241.0",
+    "@aws-sdk/client-s3": "3.245.0",
+    "@aws-sdk/lib-storage": "3.245.0",
     "image-size": "1.0.2",
     "mime": "3.0.0"
   },
@@ -41,7 +41,7 @@
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.26.0",
     "fs-extra": "11.1.0",
-    "husky": "8.0.2",
+    "husky": "8.0.3",
     "junit-report-builder": "3.0.1",
     "lint-staged": "13.1.0",
     "mocha": "10.2.0",
