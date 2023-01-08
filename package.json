@@ -6,7 +6,7 @@
   "type": "module",
   "types": "src/index.d.ts",
   "scripts": {
-    "test": " c8 mocha",
+    "test": "c8 mocha",
     "lint": "eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx typedoc --options .typedoc.cjs",
