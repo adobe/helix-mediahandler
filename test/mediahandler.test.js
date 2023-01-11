@@ -105,6 +105,22 @@ describe('MediaHandler', () => {
     });
   });
 
+  it('creates S3Client without credentials', async () => {
+    const opts = { ...DEFAULT_OPTS };
+    ['awsRegion', 'awsAccessKeyId', 'awsSecretAccessKey'].forEach((k) => delete opts[k]);
+
+    assert.doesNotThrow(() => new MediaHandler(opts));
+  });
+
+  it('creating a media resource from stream without content length should throw', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    await assert.rejects(
+      async () => handler.createMediaResourceFromStream(testStream, undefined, 'image/png'),
+      /createExternalResourceFromStream\(\) needs contentLength/,
+    );
+  });
+
   it('uploads a test image to media-bus', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
@@ -271,6 +287,10 @@ describe('MediaHandler', () => {
     const testImage = await fse.readFile(TEST_IMAGE);
     const scope1 = nock('https://www.example.com')
       .get('/test_image.png')
+      .reply(301, '', {
+        location: 'https://www.example.com/real_image.png',
+      })
+      .get('/real_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': `bytes 0-8191/${testImage.length}`,
         'content-length': 8192,
@@ -286,7 +306,7 @@ describe('MediaHandler', () => {
         'x-amz-meta-height': '268',
       });
 
-    const resource = await handler.getBlob(TEST_IMAGE_URI);
+    const resource = await handler.getBlob(TEST_IMAGE_URI, 'test_image.png');
     assert.deepStrictEqual(resource, {
       contentBusId: 'foo-id',
       contentLength: 143719,
@@ -300,7 +320,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
-      originalUri: 'https://www.example.com/test_image.png',
+      originalUri: 'https://www.example.com/real_image.png',
       owner: 'owner',
       ref: 'ref',
       repo: 'repo',
@@ -671,6 +691,7 @@ describe('MediaHandler', () => {
       ...DEFAULT_OPTS,
       namePrefix: 'anotherittest_',
       blobAgent: 'blob-test',
+      noCache: false,
     });
 
     const testImage = await fse.readFile(TEST_IMAGE);
@@ -686,6 +707,7 @@ describe('MediaHandler', () => {
         'content-length': testImage.length,
         'content-type': 'image/png',
         'last-modified': '01-01-2021',
+        'x-ms-meta-name': 'whoopsie',
       });
 
     const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
@@ -733,6 +755,9 @@ describe('MediaHandler', () => {
       storageUri: 's3://helix-media-bus/foo-id/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       uri: 'https://ref--repo--owner.hlx.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
     });
+
+    const resource2 = await handler.getBlob(TEST_IMAGE_URI);
+    assert.strictEqual(resource.hash, resource2.hash);
 
     scope1.done();
     scope2.done();
@@ -866,6 +891,96 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
+
+    assert.deepStrictEqual(await handler.put(blob), true);
+    blob.meta.foo = 'hello, world.';
+    await handler.putMetaData(blob);
+    scope1.done();
+    scope2.done();
+  });
+
+  it('can update metadata (with R2 disabled)', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      disableR2: true,
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+    blob.meta.src = '/some-source';
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        src: '/some-source',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .reply(function reply() {
+        assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
+        assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+        assert.deepStrictEqual(extractMeta(this.req.headers), {
+          alg: '8k',
+          agent: 'blob-test',
+          src: '/some-source',
+          width: '58',
+          height: '74',
+          foo: 'hello, world.',
+        });
+        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+      });
+
+    assert.deepStrictEqual(await handler.put(blob), true);
+    blob.meta.foo = 'hello, world.';
+    await handler.putMetaData(blob);
+    scope1.done();
+  });
+
+  it('can update metadata with partial failures', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+    blob.meta.src = '/some-source';
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        src: '/some-source',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .reply(function reply() {
+        assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
+        assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+        assert.deepStrictEqual(extractMeta(this.req.headers), {
+          alg: '8k',
+          agent: 'blob-test',
+          src: '/some-source',
+          width: '58',
+          height: '74',
+          foo: 'hello, world.',
+        });
+        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+      });
+    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        src: '/some-source',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .reply(500, 'that went wrong');
 
     assert.deepStrictEqual(await handler.put(blob), true);
     blob.meta.foo = 'hello, world.';

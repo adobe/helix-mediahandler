@@ -45,12 +45,12 @@ export default class MediaHandler {
    */
   constructor(opts = {}) {
     Object.assign(this, {
-      _awsRegion: opts.awsRegion || process.env.AWS_S3_REGION,
-      _awsAccessKeyId: opts.awsAccessKeyId || process.env.AWS_S3_ACCESS_KEY_ID,
-      _awsSecretAccessKey: opts.awsSecretAccessKey || process.env.AWS_S3_SECRET_ACCESS_KEY,
-      _r2AccountId: opts.r2AccountId || process.env.CLOUDFLARE_ACCOUNT_ID,
-      _r2AccessKeyId: opts.r2AccessKeyId || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
-      _r2SecretAccessKey: opts.r2SecretAccessKey || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+      _awsRegion: opts.awsRegion,
+      _awsAccessKeyId: opts.awsAccessKeyId,
+      _awsSecretAccessKey: opts.awsSecretAccessKey,
+      _r2AccountId: opts.r2AccountId,
+      _r2AccessKeyId: opts.r2AccessKeyId,
+      _r2SecretAccessKey: opts.r2SecretAccessKey,
       _bucketId: opts.bucketId || 'helix-media-bus',
       _contentBusId: opts.contentBusId,
       _owner: opts.owner,
@@ -121,7 +121,7 @@ export default class MediaHandler {
     }
 
     this.fetchContext = fetchDefaultContext;
-    // eslint-disable-next-line no-constant-condition
+    /* c8 ignore next */
     if (opts.forceHttp1 || process.env.HELIX_FETCH_FORCE_HTTP1) {
       this.fetchContext = h1({
         maxCacheSize: FETCH_CACHE_SIZE,
@@ -195,6 +195,7 @@ export default class MediaHandler {
         stream.unshift(buf);
         resolve(buf);
       };
+      /* c8 ignore next 3 */
       const onEnd = () => {
         done();
       };
@@ -256,6 +257,7 @@ export default class MediaHandler {
       log.info(`[${c}] Metadata loaded for: ${blob.storageUri}`);
       return result.Metadata;
     } catch (e) {
+      /* c8 ignore next */
       log.info(`[${c}] Blob ${blob.storageUri} does not exist: ${e.$metadata.httpStatusCode || e.message}`);
       return null;
     }
