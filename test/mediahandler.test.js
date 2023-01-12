@@ -625,6 +625,85 @@ describe('MediaHandler', () => {
     scope2.done();
   });
 
+  it('can upload a small external resource from stream with S3 failing', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
+      .reply(500, 'that went wrong');
+    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+
+    assert.strictEqual(await handler.put(blob), false);
+    scope1.done();
+    scope2.done();
+  });
+
+  it('can upload a small external resource from stream with R2 failing', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
+      .reply(500, 'that went wrong');
+
+    assert.strictEqual(await handler.put(blob), false);
+    scope1.done();
+    scope2.done();
+  });
+
+  it('can upload a blob from a small image', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+    const blob = handler.createMediaResource(testImage, testImage.length, 'image/png');
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+
+    assert.strictEqual(await handler.upload(blob), true);
+    scope1.done();
+    scope2.done();
+  });
+
   it('can disable R2 via options', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
@@ -939,7 +1018,57 @@ describe('MediaHandler', () => {
     scope1.done();
   });
 
-  it('can update metadata with partial failures', async () => {
+  it('can update metadata with S3 failing', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+    blob.meta.src = '/some-source';
+
+    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        src: '/some-source',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .reply(500, 'that went wrong');
+    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        src: '/some-source',
+        height: '74',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .reply(function reply() {
+        assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
+        assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+        assert.deepStrictEqual(extractMeta(this.req.headers), {
+          alg: '8k',
+          agent: 'blob-test',
+          src: '/some-source',
+          width: '58',
+          height: '74',
+          foo: 'hello, world.',
+        });
+        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+      });
+
+    assert.deepStrictEqual(await handler.put(blob), true);
+    blob.meta.foo = 'hello, world.';
+    await handler.putMetaData(blob);
+    scope1.done();
+    scope2.done();
+  });
+
+  it('can update metadata with R2 failing', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
@@ -987,6 +1116,33 @@ describe('MediaHandler', () => {
     await handler.putMetaData(blob);
     scope1.done();
     scope2.done();
+  });
+
+  it('can handle a bad content-range header', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+    });
+    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+    const scope1 = nock('https://www.example.com')
+      .get('/test_small_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': 'bytes 0-8191/whoopsie',
+        'content-length': 8192,
+      });
+    await handler.fetchHeader('https://www.example.com/test_small_image.png');
+    scope1.done();
+  });
+
+  it('aborts spool if fetch fails', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+    });
+    const scope1 = nock('https://www.example.com')
+      .get('/test_image.png')
+      .reply(404, 'nope, not here');
+
+    assert.strictEqual(false, await handler.spool({ originalUri: TEST_IMAGE_URI }));
+    scope1.done();
   });
 
   it('sanitizes content type', () => {
