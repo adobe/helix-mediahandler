@@ -12,6 +12,13 @@
 
 ## Installation
 
+The service uses the following environment variables:
+
+| Name  | Description  | Required | Default |
+|:------|:-------------|:---------|:--------|
+| HELIX_MEDIA_HANDLER_DISABLE_R2 | Whether the R2 backend should be disabled | No | false |
+
+
 ```bash
 $ npm install @adobe/helix-mediahandler
 ```
