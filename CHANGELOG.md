@@ -1,3 +1,19 @@
+# [2.0.0](https://github.com/adobe/helix-mediahandler/compare/v1.2.25...v2.0.0) (2023-01-12)
+
+
+### Bug Fixes
+
+* do not check environment variables ([#100](https://github.com/adobe/helix-mediahandler/issues/100)) ([8c46747](https://github.com/adobe/helix-mediahandler/commit/8c467479db9402621bee864af1ec09e1720f57e1))
+
+
+### BREAKING CHANGES
+
+* passing credentials in environment no longer supported
+
+* chore(test): coverage to 100%
+
+* chore: fix badges
+
 ## [1.2.25](https://github.com/adobe/helix-mediahandler/compare/v1.2.24...v1.2.25) (2023-01-07)
 
 
