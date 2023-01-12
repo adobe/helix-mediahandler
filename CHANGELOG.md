@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/adobe/helix-mediahandler/compare/v2.0.0...v2.0.1) (2023-01-12)
+
+
+### Bug Fixes
+
+* document R2 options ([6bf65bc](https://github.com/adobe/helix-mediahandler/commit/6bf65bc9f6ac95c96d42e51269f0495093d895b2))
+
 # [2.0.0](https://github.com/adobe/helix-mediahandler/compare/v1.2.25...v2.0.0) (2023-01-12)
 
 
