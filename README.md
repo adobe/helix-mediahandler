@@ -3,8 +3,8 @@
 > Library for interacting with the helix media-bus
 
 ## Status
-[![codecov](https://img.shields.io/codecov/c/github/adobe/helix-mediahandler.svg)](https://codecov.io/gh/adobe/helix-mediahandler)
-[![CircleCI](https://circleci.com/gh/adobe/helix-mediahandler.svg?style=svg)](https://circleci.com/gh/adobe/helix-mediahandler)
+[![codecov](https://codecov.io/gh/adobe/helix-mediahandler/branch/main/graph/badge.svg?token=HKOMTxpibO)](https://codecov.io/gh/adobe/helix-mediahandler)
+[![CircleCI](https://circleci.com/gh/adobe/helix-mediahandler.svg?style=shield)](https://circleci.com/gh/adobe/helix-mediahandler)
 [![GitHub license](https://img.shields.io/github/license/adobe/helix-mediahandler.svg)](https://github.com/adobe/helix-mediahandler/blob/main/LICENSE.txt)
 [![GitHub issues](https://img.shields.io/github/issues/adobe/helix-mediahandler.svg)](https://github.com/adobe/helix-mediahandler/issues)
 [![LGTM Code Quality Grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/adobe/helix-mediahandler.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adobe/helix-mediahandler)
