@@ -12,7 +12,7 @@
 
 ## Installation
 
-The service uses the following environment variables:
+The library uses the following environment variables:
 
 | Name  | Description  | Required | Default |
 |:------|:-------------|:---------|:--------|
