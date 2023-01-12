@@ -150,6 +150,21 @@ export declare interface MediaHandlerOptions {
   awsSecretAccessKey?: string,
 
   /**
+   * Cloudflare account ID
+   */
+  r2AccountId?: string,
+
+  /**
+   * Cloudflare access key ID
+   */
+  r2AccessKeyId?: string,
+
+  /**
+   * Cloudflare secret access key
+   */
+  r2SecretAccessKey?: string,
+
+  /**
    * Media owner
    */
   owner: string,
