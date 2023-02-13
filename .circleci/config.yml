@@ -12,9 +12,6 @@ commands:
     steps:
       - checkout
       - run:
-          name: install latest npm
-          command: npm -g install npm
-      - run:
           name: Installing Dependencies
           command: npm ci
       - run:
