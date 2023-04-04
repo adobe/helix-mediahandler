@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/adobe/helix-mediahandler/compare/v2.0.18...v2.1.0) (2023-04-04)
+
+
+### Features
+
+* retry fetch header in case of 5xx or network problem ([#125](https://github.com/adobe/helix-mediahandler/issues/125)) ([da53ca8](https://github.com/adobe/helix-mediahandler/commit/da53ca896e5bc3f17fcf904105efcdcd11bf3963))
+
 ## [2.0.18](https://github.com/adobe/helix-mediahandler/compare/v2.0.17...v2.0.18) (2023-04-01)
 
 
