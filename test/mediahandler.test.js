@@ -495,6 +495,22 @@ describe('MediaHandler', () => {
     scope.done();
   });
 
+  it('retries for a resource returning a 500 first', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+    const scope = nock('https://www.example.com')
+      .get('/test_small_image.png')
+      .reply(500)
+      .get('/test_small_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': 'bytes 0-8191/whoopsie',
+        'content-length': 8192,
+      });
+
+    await handler.fetchHeader('https://www.example.com/test_small_image.png');
+    scope.done();
+  });
+
   it('can specify timeout', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,

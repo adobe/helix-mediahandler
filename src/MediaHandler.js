@@ -14,7 +14,10 @@
 import crypto from 'crypto';
 import { PassThrough, Transform } from 'stream';
 
-import { context, h1, timeoutSignal } from '@adobe/fetch';
+import {
+  AbortError, context, h1, timeoutSignal,
+} from '@adobe/fetch';
+import wrapFetch from 'fetch-retry';
 import mime from 'mime';
 import { CopyObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import sizeOf from 'image-size';
@@ -30,6 +33,11 @@ const blobCache = {};
 let requestCounter = 0;
 
 const FETCH_CACHE_SIZE = 10 * 1024 * 1024; // 10mb
+
+/**
+ * Number of retries in fetchHeader
+ */
+const MAX_RETRIES = 3;
 
 const fetchDefaultContext = context({
   maxCacheSize: FETCH_CACHE_SIZE,
@@ -128,6 +136,7 @@ export default class MediaHandler {
       });
     }
     this.fetch = this.fetchContext.fetch;
+    this.fetchRetry = wrapFetch(this.fetch);
   }
 
   get log() {
@@ -313,9 +322,11 @@ export default class MediaHandler {
    * @returns {MediaResource} resource information
    */
   async fetchHeader(uri) {
+    const { log } = this;
     const c = requestCounter++;
-    this._log.debug(`[${c}] GET ${uri}`);
+    log.debug(`[${c}] GET ${uri}`);
     let res;
+
     const opts = {
       method: 'GET',
       headers: {
@@ -324,29 +335,41 @@ export default class MediaHandler {
       },
       cache: 'no-store',
       signal: timeoutSignal(this._fetchTimeout),
+      retryOn: (attempt, error, response) => {
+        // if the fetch timeout exceeded, stop now
+        if (error instanceof AbortError) {
+          return false;
+        }
+        // retry on any network error or 5xx status codes
+        if (attempt < MAX_RETRIES && (error !== null || response.status >= 500)) {
+          log.debug(`failed with ${error || response.status}: retrying (attempt# ${attempt + 1}/${MAX_RETRIES})`);
+          return true;
+        }
+        return false;
+      },
     };
     if (this._auth) {
       opts.headers.authorization = this._auth;
     }
     try {
-      res = await this.fetch(uri, opts);
+      res = await this.fetchRetry(uri, opts);
     } catch (e) {
-      this._log.info(`[${c}] Failed to fetch header of ${uri}: ${e.message}`);
+      log.info(`[${c}] Failed to fetch header of ${uri}: ${e.message}`);
       return null;
     } finally {
       opts.signal.clear();
     }
 
     if (res.redirected) {
-      this._log.debug(`[${c}] redirected ${uri} -> ${res.url}`);
+      log.debug(`[${c}] redirected ${uri} -> ${res.url}`);
     }
     const body = await res.buffer();
-    this._log.debug(`[${c}]`, {
+    log.debug(`[${c}]`, {
       statusCode: res.status,
       headers: res.headers.plain(),
     });
     if (!res.ok) {
-      this._log.info(`[${c}] Failed to fetch header of ${uri}: ${res.status}`);
+      log.info(`[${c}] Failed to fetch header of ${uri}: ${res.status}`);
       return null;
     }
 
@@ -364,13 +387,13 @@ export default class MediaHandler {
       }
     } else {
       // no content range header...assuming server doesn't support range requests.
-      this._log.warn(`[${c}] no content-range header for ${uri}. using entire body`);
+      log.warn(`[${c}] no content-range header for ${uri}. using entire body`);
       contentLength = body.length;
       data = body;
     }
     if (!contentLength) {
       if (body.length) {
-        this._log.warn(`[${c}] inconsistent lengths while fetching header of ${uri}.`);
+        log.warn(`[${c}] inconsistent lengths while fetching header of ${uri}.`);
         contentLength = body.length;
       }
     }
