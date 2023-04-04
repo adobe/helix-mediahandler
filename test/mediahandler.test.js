@@ -495,7 +495,7 @@ describe('MediaHandler', () => {
     scope.done();
   });
 
-  it('retries for a resource returning a 500', async () => {
+  it('retries for a resource returning a 500 first', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_SMALL_IMAGE);
     const scope = nock('https://www.example.com')
