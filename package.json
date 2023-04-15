@@ -24,9 +24,9 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/fetch": "4.0.8",
-    "@aws-sdk/abort-controller": "3.306.0",
-    "@aws-sdk/client-s3": "3.309.0",
-    "@aws-sdk/lib-storage": "3.309.0",
+    "@aws-sdk/abort-controller": "3.310.0",
+    "@aws-sdk/client-s3": "3.312.0",
+    "@aws-sdk/lib-storage": "3.312.0",
     "fetch-retry": "5.0.4",
     "image-size": "1.0.2",
     "mime": "3.0.0"
@@ -47,8 +47,8 @@
     "mocha-multi-reporters": "1.5.1",
     "nock": "13.3.0",
     "semantic-release": "21.0.1",
-    "typedoc": "0.23.28",
-    "typedoc-plugin-markdown": "3.14.0",
+    "typedoc": "0.24.1",
+    "typedoc-plugin-markdown": "3.15.1",
     "typescript": "4.8.3"
   },
   "mocha": {
