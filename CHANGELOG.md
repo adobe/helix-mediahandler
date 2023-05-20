@@ -1,3 +1,10 @@
+## [2.1.12](https://github.com/adobe/helix-mediahandler/compare/v2.1.11...v2.1.12) (2023-05-20)
+
+
+### Bug Fixes
+
+* **deps:** update external fixes ([2fd3a5e](https://github.com/adobe/helix-mediahandler/commit/2fd3a5eaa5a67659b059ea0dd2b49c9d05793b0b))
+
 ## [2.1.11](https://github.com/adobe/helix-mediahandler/compare/v2.1.10...v2.1.11) (2023-05-18)
 
 
