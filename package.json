@@ -6,7 +6,7 @@
   "type": "module",
   "types": "src/index.d.ts",
   "scripts": {
-    "test": "c8 mocha",
+    "test": "c8 mocha --spec=test/*.test.js --spec=test/mp4/*.test.js",
     "lint": "eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx typedoc --options .typedoc.cjs",
@@ -53,7 +53,6 @@
   },
   "mocha": {
     "require": "test/setup-env.js",
-    "spec": "test/*.test.js",
     "reporter": "mocha-multi-reporters",
     "reporter-options": "configFile=.mocha-multi.json"
   },
