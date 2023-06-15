@@ -109,7 +109,7 @@ export class Parser {
       let size = buf.readUInt32BE(offset);
       let minsize = 8;
 
-      if (size === 1) {
+      if (size === 1 && offset + 16 < buf.length) {
         size = Number(buf.readBigUInt64BE(offset + 8));
         minsize = 16;
       } else if (size === 0) {
@@ -119,7 +119,7 @@ export class Parser {
         throw new Error(`[${name}] ${parent.getPath()} (${pos + offset}): Size points beyond buffer: ${size}`);
       }
       if (size < minsize) {
-        offset += 4;
+        offset += minsize;
       } else {
         const type = buf.toString('ascii', offset + 4, offset + 8);
         const atom = new (ATOMS[type] || Atom)(

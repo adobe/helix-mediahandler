@@ -37,12 +37,12 @@ describe('MP4 Parser', () => {
     assert.strictEqual(new Parser(buf, console).probe(), false);
   });
 
-  it('Probe a file that contains an image', async () => {
+  it('Parse a file that contains an image', async () => {
     const buf = Buffer.from([
       0x00, 0x00, 0x00, 0x10, 0x66, 0x74, 0x79, 0x70,
       0x6a, 0x70, 0x32, 0x20, 0x00, 0x00, 0x00, 0x00,
     ]);
-    assert.strictEqual(new Parser(buf, console).probe(), false);
+    assert.strictEqual(new Parser(buf, console).parse(), null);
   });
 
   it('Parse a file that contains a long atom size', async () => {
@@ -54,5 +54,25 @@ describe('MP4 Parser', () => {
       0x65,
     ]);
     assert.notStrictEqual(new Parser(buf, console).parse(), null);
+  });
+
+  it('Parse a file that contains a zero atom size', async () => {
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x10, 0x66, 0x74, 0x79, 0x70,
+      0x71, 0x74, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x61, 0x62, 0x63, 0x64,
+      0x65,
+    ]);
+    assert.notStrictEqual(new Parser(buf, console).parse(), null);
+  });
+
+  it('Parse a file that contains an atom with a size exceeding the buffer limit', async () => {
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x10, 0x66, 0x74, 0x79, 0x70,
+      0x71, 0x74, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00,
+      0x10, 0x00, 0x00, 0x00, 0x61, 0x62, 0x63, 0x64,
+      0x65,
+    ]);
+    assert.strictEqual(new Parser(buf, console).parse(), null);
   });
 });
