@@ -26,6 +26,9 @@ const TEST_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_image.png')
 const TEST_SMALL_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_small_image.png');
 const TEST_IMAGE_URI = 'https://www.example.com/test_image.png';
 
+const TEST_VIDEO = path.resolve(__rootdir, 'test', 'fixtures', 'test_video.mp4');
+const TEST_VIDEO_URI = 'https://www.example.com/test_video.mp4';
+
 // require('dotenv').config();
 const DEFAULT_OPTS = {
   owner: 'owner',
@@ -181,6 +184,76 @@ describe('MediaHandler', () => {
       storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       uri: 'https://ref--repo--owner.hlx.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
+    });
+
+    scope1.done();
+    scope2.done();
+    scope3.done();
+  });
+
+  it('uploads a test video to media-bus', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testVideo = await fse.readFile(TEST_VIDEO);
+    const scope1 = nock('https://www.example.com')
+      .get('/test_video.mp4')
+      .reply(206, testVideo.subarray(0, 8192), {
+        'content-range': `bytes 0-8191/${testVideo.length}`,
+        'content-length': 8192,
+      })
+      .get('/test_video.mp4')
+      .reply(200, testVideo, {
+        'content-length': testVideo.length,
+        'content-type': 'video/mp4',
+        'last-modified': '01-01-2021',
+      });
+
+    const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/122d57f2fc8e69edd784262ae09510ce81b2e0902')
+      .reply(404)
+      .putObject({
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        width: '360',
+        height: '640',
+        duration: '3',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_video.mp4',
+      }, '122d57f2fc8e69edd784262ae09510ce81b2e0902');
+
+    const scope3 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        width: '360',
+        height: '640',
+        duration: '3',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_video.mp4',
+      }, '122d57f2fc8e69edd784262ae09510ce81b2e0902');
+
+    const resource = await handler.getBlob(TEST_VIDEO_URI);
+    assert.deepStrictEqual(resource, {
+      contentBusId: 'foo-id',
+      contentLength: 108996,
+      contentType: 'video/mp4',
+      hash: '122d57f2fc8e69edd784262ae09510ce81b2e0902',
+      lastModified: '01-01-2021',
+      meta: {
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_video.mp4',
+        width: '360',
+        height: '640',
+        duration: '3',
+      },
+      originalUri: 'https://www.example.com/test_video.mp4',
+      owner: 'owner',
+      ref: 'ref',
+      repo: 'repo',
+      storageKey: 'foo-id/122d57f2fc8e69edd784262ae09510ce81b2e0902',
+      storageUri: 's3://helix-media-bus/foo-id/122d57f2fc8e69edd784262ae09510ce81b2e0902',
+      uri: 'https://ref--repo--owner.hlx.page/media_122d57f2fc8e69edd784262ae09510ce81b2e0902.mp4',
     });
 
     scope1.done();

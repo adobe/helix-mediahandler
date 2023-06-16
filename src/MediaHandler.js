@@ -22,6 +22,7 @@ import mime from 'mime';
 import { CopyObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import sizeOf from 'image-size';
 import { Upload } from '@aws-sdk/lib-storage';
+import { Parser } from './mp4/Parser.js';
 import pkgJson from './package.cjs';
 
 sizeOf.disableFS(true);
@@ -301,6 +302,16 @@ export default class MediaHandler {
     if (!data) {
       return {};
     }
+    const info = new Parser(data, this._log).parse();
+    if (info) {
+      return {
+        width: String(info.width),
+        height: String(info.height),
+        duration: String(info.duration),
+        type: info.mimeType,
+      };
+    }
+
     try {
       const dimensions = sizeOf(data);
       this._log.info(`[${c}] detected dimensions: ${dimensions.type} ${dimensions.width} x ${dimensions.height}`);
@@ -580,10 +591,13 @@ export default class MediaHandler {
     const buffers = [];
     if (!blob.meta.width) {
       if (blob.data) {
-        const { width, height } = this._getDimensions(blob.data, c);
+        const { width, height, duration } = this._getDimensions(blob.data, c);
         if (width) {
           blob.meta.width = width;
           blob.meta.height = height;
+        }
+        if (duration) {
+          blob.meta.duration = duration;
         }
       } else {
         // create transform stream and store the first mb
@@ -743,7 +757,7 @@ export default class MediaHandler {
     } = blob;
     const ext = mime.getExtension(blob.contentType) || 'bin';
     let fragment = '';
-    if (blob.meta && blob.meta.width && blob.meta.height) {
+    if (blob.meta && blob.meta.width && blob.meta.height && !blob.contentType?.match(/^video\/[^/]+$/)) {
       fragment = `#width=${blob.meta.width}&height=${blob.meta.height}`;
     }
     blob.uri = `https://${ref}--${repo}--${owner}.hlx.page/media_${hash}.${ext}${fragment}`;
