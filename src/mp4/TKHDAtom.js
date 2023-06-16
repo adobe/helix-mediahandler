@@ -29,6 +29,7 @@ export class TKHDAtom extends Atom {
     const id = buf.readUInt32BE(offset);
 
     offset = (version === 1 ? 88 : 76);
+    this.assertLength(name, offset + 8);
     const width = buf.readUInt32BE(offset) >> 16;
     const height = buf.readUInt32BE(offset + 4) >> 16;
 
