@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/adobe/helix-mediahandler/compare/v2.1.15...v2.2.0) (2023-06-16)
+
+
+### Features
+
+* provide dimensions for MP4 ([#145](https://github.com/adobe/helix-mediahandler/issues/145)) ([dea5031](https://github.com/adobe/helix-mediahandler/commit/dea5031e544db313ccea28e25ee33cb82a58dd9c))
+
 ## [2.1.15](https://github.com/adobe/helix-mediahandler/compare/v2.1.14...v2.1.15) (2023-06-10)
 
 
