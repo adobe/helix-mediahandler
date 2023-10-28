@@ -32,7 +32,7 @@
     "mime": "3.0.0"
   },
   "devDependencies": {
-    "@adobe/eslint-config-helix": "2.0.3",
+    "@adobe/eslint-config-helix": "2.0.4",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/git": "10.0.1",
     "@types/node": "20.8.9",
