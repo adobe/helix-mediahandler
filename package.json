@@ -25,8 +25,8 @@
   "dependencies": {
     "@adobe/fetch": "4.1.0",
     "@aws-sdk/abort-controller": "3.370.0",
-    "@aws-sdk/client-s3": "3.433.0",
-    "@aws-sdk/lib-storage": "3.433.0",
+    "@aws-sdk/client-s3": "3.438.0",
+    "@aws-sdk/lib-storage": "3.438.0",
     "fetch-retry": "5.0.6",
     "image-size": "1.0.2",
     "mime": "3.0.0"
@@ -35,7 +35,7 @@
     "@adobe/eslint-config-helix": "2.0.3",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@types/node": "20.8.8",
+    "@types/node": "20.8.9",
     "c8": "8.0.1",
     "dotenv": "16.3.1",
     "eslint": "8.52.0",
