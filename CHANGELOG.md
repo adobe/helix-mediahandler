@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/adobe/helix-mediahandler/compare/v2.2.22...v2.3.0) (2023-10-30)
+
+
+### Features
+
+* support function auth option ([#177](https://github.com/adobe/helix-mediahandler/issues/177)) ([b6c02a3](https://github.com/adobe/helix-mediahandler/commit/b6c02a350e3cbe0a2409776483dbbd8aa4bea1c1))
+
 ## [2.2.22](https://github.com/adobe/helix-mediahandler/compare/v2.2.21...v2.2.22) (2023-10-30)
 
 
