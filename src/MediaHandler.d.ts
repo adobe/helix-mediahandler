@@ -133,6 +133,11 @@ export declare interface MediaResource {
  */
 declare type MediaFilter = (blob: MediaResource) => boolean;
 
+/**
+ * Provide the auth header for the given url
+ */
+declare type AuthHeaderProvider = (url: URL) => string;
+
 export declare interface MediaHandlerOptions {
   /**
    * AWS region
@@ -239,7 +244,7 @@ export declare interface MediaHandlerOptions {
   /**
    * Authentication header for fetching sources.
    */
-  auth?: string|(() => string),
+  auth?: string|AuthHeaderProvider,
 
   /**
    * Size of the upload buffer to calculate image size if missing.

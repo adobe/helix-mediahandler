@@ -365,8 +365,9 @@ export default class MediaHandler {
         return false;
       },
     };
-    if (this._auth()) {
-      opts.headers.authorization = this._auth();
+    const auth = this._auth(new URL(uri));
+    if (auth) {
+      opts.headers.authorization = auth;
     }
     try {
       res = await this.fetchRetry(uri, opts);
@@ -710,8 +711,9 @@ export default class MediaHandler {
         'accept-encoding': 'identity',
       },
     };
-    if (this._auth()) {
-      opts.headers.authorization = this._auth();
+    const auth = this._auth(new URL(blob.originalUri));
+    if (auth) {
+      opts.headers.authorization = auth;
     }
     const source = await this.fetch(blob.originalUri, opts);
     if (!source.ok) {
