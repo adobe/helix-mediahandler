@@ -100,6 +100,12 @@ export default class MediaHandler {
       throw Error('owner, repo, ref, and contentBusId are mandatory parameters.');
     }
 
+    // adjust _auth to function
+    if (typeof this._auth !== 'function') {
+      const auth = this._auth;
+      this._auth = () => auth;
+    }
+
     const disableR2 = opts.disableR2 || process.env.HELIX_MEDIA_HANDLER_DISABLE_R2;
 
     if (this._awsRegion && this._awsAccessKeyId && this._awsSecretAccessKey) {
@@ -359,8 +365,8 @@ export default class MediaHandler {
         return false;
       },
     };
-    if (this._auth) {
-      opts.headers.authorization = this._auth;
+    if (this._auth()) {
+      opts.headers.authorization = this._auth();
     }
     try {
       res = await this.fetchRetry(uri, opts);
@@ -704,8 +710,8 @@ export default class MediaHandler {
         'accept-encoding': 'identity',
       },
     };
-    if (this._auth) {
-      opts.headers.authorization = this._auth;
+    if (this._auth()) {
+      opts.headers.authorization = this._auth();
     }
     const source = await this.fetch(blob.originalUri, opts);
     if (!source.ok) {

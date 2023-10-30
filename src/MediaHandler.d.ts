@@ -239,7 +239,7 @@ export declare interface MediaHandlerOptions {
   /**
    * Authentication header for fetching sources.
    */
-  auth?: string,
+  auth?: string|(() => string),
 
   /**
    * Size of the upload buffer to calculate image size if missing.
