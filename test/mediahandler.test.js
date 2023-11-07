@@ -80,8 +80,9 @@ Scope.prototype.s3Multipart = function s3Multipart(expectedMeta, sha = '18bb2f0e
 /**
  * Add custom scope interceptor chain for multipart uploads
  */
-Scope.prototype.putObject = function putObject(expectedMeta, sha = '18bb2f0e55ff47be3fc32a575590b53e060b911f4') {
-  return this.put(`/foo-id/${sha}?x-id=PutObject`)
+Scope.prototype.putObject = function putObject(expectedMeta, sha = '18bb2f0e55ff47be3fc32a575590b53e060b911f4', contentBusId = 'foo-id') {
+  return this
+    .put(`/${contentBusId}/${sha}?x-id=PutObject`)
     .reply(function reply() {
       assert.deepStrictEqual(extractMeta(this.req.headers), expectedMeta);
       return [201];
@@ -930,6 +931,60 @@ describe('MediaHandler', () => {
     scope1.done();
     scope2.done();
     scope3.done();
+
+    // now upload the same image to a different media bus
+
+    const scope4 = nock('https://www.example.com')
+      .get('/test_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+      })
+      .get('/test_image.png')
+      .reply(200, testImage, {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+        'last-modified': '01-01-2021',
+        'x-ms-meta-name': 'whoopsie',
+      });
+
+    const scope5 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id-2/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404)
+      .putObject({
+        agent: 'blob-test',
+        alg: '8k',
+        height: '268',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_image.png',
+        width: '477',
+      }, 'anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4', 'foo-id-2');
+
+    const scope6 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        agent: 'blob-test',
+        alg: '8k',
+        height: '268',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_image.png',
+        width: '477',
+      }, 'anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4', 'foo-id-2');
+
+    // upload 2nd blob with different contentBusId
+    const handler2 = new MediaHandler({
+      ...DEFAULT_OPTS,
+      contentBusId: 'foo-id-2',
+      namePrefix: 'anotherittest_',
+      blobAgent: 'blob-test',
+      noCache: false,
+    });
+
+    const resource3 = await handler2.getBlob(TEST_IMAGE_URI);
+    assert.strictEqual(resource.hash, resource3.hash);
+
+    scope4.done();
+    scope5.done();
+    scope6.done();
   });
 
   for (const { auth, title } of [
