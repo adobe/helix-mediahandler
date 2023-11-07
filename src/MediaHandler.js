@@ -67,7 +67,6 @@ export default class MediaHandler {
       _ref: opts.ref,
 
       _log: opts.log || console,
-      _cache: blobCache,
       _noCache: opts.noCache,
       _fetchTimeout: opts.fetchTimeout || 10000,
       _uploadBufferSize: opts.uploadBufferSize || 1024 * 1024 * 5,
@@ -98,6 +97,12 @@ export default class MediaHandler {
 
     if (!this._owner || !this._repo || !this._ref || !this._contentBusId) {
       throw Error('owner, repo, ref, and contentBusId are mandatory parameters.');
+    }
+
+    this._cache = blobCache[this._contentBusId];
+    if (!this._cache) {
+      blobCache[this._contentBusId] = {};
+      this._cache = blobCache[this._contentBusId];
     }
 
     // adjust _auth to function
