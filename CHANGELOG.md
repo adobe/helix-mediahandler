@@ -1,3 +1,10 @@
+## [2.3.2](https://github.com/adobe/helix-mediahandler/compare/v2.3.1...v2.3.2) (2023-11-07)
+
+
+### Bug Fixes
+
+* make blob uri cache contentBusId dependent ([#179](https://github.com/adobe/helix-mediahandler/issues/179)) ([f7823d2](https://github.com/adobe/helix-mediahandler/commit/f7823d2b302adc1b3a9b80dd4c3127a441f6b8f8))
+
 ## [2.3.1](https://github.com/adobe/helix-mediahandler/compare/v2.3.0...v2.3.1) (2023-11-04)
 
 
