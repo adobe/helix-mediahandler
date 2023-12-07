@@ -1,3 +1,10 @@
+## [2.3.8](https://github.com/adobe/helix-mediahandler/compare/v2.3.7...v2.3.8) (2023-12-07)
+
+
+### Bug Fixes
+
+* use keepAlive for http 1.1 ([#187](https://github.com/adobe/helix-mediahandler/issues/187)) ([a30053f](https://github.com/adobe/helix-mediahandler/commit/a30053f9fb6424b24cbfccde609115868aeedde3))
+
 ## [2.3.7](https://github.com/adobe/helix-mediahandler/compare/v2.3.6...v2.3.7) (2023-12-04)
 
 
