@@ -15,7 +15,7 @@ import crypto from 'crypto';
 import { PassThrough, Transform } from 'stream';
 
 import {
-  AbortError, context, h1, timeoutSignal,
+  AbortError, context, keepAlive, timeoutSignal,
 } from '@adobe/fetch';
 import wrapFetch from 'fetch-retry';
 import mime from 'mime';
@@ -143,7 +143,7 @@ export default class MediaHandler {
     this.fetchContext = fetchDefaultContext;
     /* c8 ignore next */
     if (opts.forceHttp1 || process.env.HELIX_FETCH_FORCE_HTTP1) {
-      this.fetchContext = h1({
+      this.fetchContext = keepAlive({
         maxCacheSize: FETCH_CACHE_SIZE,
       });
     }
