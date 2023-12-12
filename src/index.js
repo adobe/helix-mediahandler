@@ -10,8 +10,9 @@
  * governing permissions and limitations under the License.
  */
 import MediaHandler from './MediaHandler.js';
+import { Parser as MP4Parser } from './mp4/Parser.js';
 
 export {
-  // eslint-disable-next-line import/prefer-default-export
   MediaHandler,
+  MP4Parser,
 };

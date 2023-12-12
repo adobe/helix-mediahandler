@@ -10,3 +10,4 @@
  * governing permissions and limitations under the License.
  */
 export * from './MediaHandler';
+export * from './mp4/Parser';
