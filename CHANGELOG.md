@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/adobe/helix-mediahandler/compare/v2.3.9...v2.4.0) (2023-12-12)
+
+
+### Features
+
+* export MP4 parser ([#189](https://github.com/adobe/helix-mediahandler/issues/189)) ([6106013](https://github.com/adobe/helix-mediahandler/commit/6106013546e3a48452cb18da84a77d90321a67c8))
+
 ## [2.3.9](https://github.com/adobe/helix-mediahandler/compare/v2.3.8...v2.3.9) (2023-12-09)
 
 
