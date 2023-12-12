@@ -33,7 +33,7 @@ export declare interface MP4Info {
 /**
  * MP4 parser that will return information about width, height and duration.
  */
-export declare class Parser {
+export declare class MP4Parser {
   /**
    * Creates a new MP4 parser
    *
