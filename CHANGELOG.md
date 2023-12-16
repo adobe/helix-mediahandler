@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/adobe/helix-mediahandler/compare/v2.4.0...v2.4.1) (2023-12-16)
+
+
+### Bug Fixes
+
+* **deps:** update external fixes ([8fb7dcb](https://github.com/adobe/helix-mediahandler/commit/8fb7dcb4fa7a3b538f91dd0a585f22c92f69347d))
+
 # [2.4.0](https://github.com/adobe/helix-mediahandler/compare/v2.3.9...v2.4.0) (2023-12-12)
 
 
