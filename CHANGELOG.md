@@ -1,3 +1,10 @@
+## [2.4.12](https://github.com/adobe/helix-mediahandler/compare/v2.4.11...v2.4.12) (2024-02-27)
+
+
+### Bug Fixes
+
+* always clear timeout ([#206](https://github.com/adobe/helix-mediahandler/issues/206)) ([7c1553f](https://github.com/adobe/helix-mediahandler/commit/7c1553f99eadc271f4d6c2bbd8d98a064003e53b))
+
 ## [2.4.11](https://github.com/adobe/helix-mediahandler/compare/v2.4.10...v2.4.11) (2024-02-24)
 
 
