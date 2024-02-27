@@ -370,11 +370,11 @@ export default class MediaHandler {
         return false;
       },
     };
-    const auth = this._auth(new URL(uri));
-    if (auth) {
-      opts.headers.authorization = auth;
-    }
     try {
+      const auth = this._auth(new URL(uri));
+      if (auth) {
+        opts.headers.authorization = auth;
+      }
       res = await this.fetchRetry(uri, opts);
     } catch (e) {
       log.info(`[${c}] Failed to fetch header of ${uri}: ${e.message}`);
