@@ -1,3 +1,10 @@
+## [2.4.16](https://github.com/adobe/helix-mediahandler/compare/v2.4.15...v2.4.16) (2024-03-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependency fetch-retry to v6 ([#210](https://github.com/adobe/helix-mediahandler/issues/210)) ([b651bba](https://github.com/adobe/helix-mediahandler/commit/b651bba06776595b3a56293ec8d9c6efc6b73102))
+
 ## [2.4.15](https://github.com/adobe/helix-mediahandler/compare/v2.4.14...v2.4.15) (2024-03-16)
 
 
