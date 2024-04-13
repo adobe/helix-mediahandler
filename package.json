@@ -25,7 +25,6 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/fetch": "4.1.2",
-    "@aws-sdk/abort-controller": "3.374.0",
     "@aws-sdk/client-s3": "3.552.0",
     "@aws-sdk/lib-storage": "3.552.0",
     "fetch-retry": "6.0.0",
