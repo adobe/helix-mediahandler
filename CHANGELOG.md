@@ -1,3 +1,10 @@
+## [2.4.20](https://github.com/adobe/helix-mediahandler/compare/v2.4.19...v2.4.20) (2024-04-13)
+
+
+### Bug Fixes
+
+* **deps:** remove abort controller ([#217](https://github.com/adobe/helix-mediahandler/issues/217)) ([aea01ed](https://github.com/adobe/helix-mediahandler/commit/aea01eddf72287d74a8da5916852337167c38610))
+
 ## [2.4.19](https://github.com/adobe/helix-mediahandler/compare/v2.4.18...v2.4.19) (2024-04-11)
 
 
