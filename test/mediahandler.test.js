@@ -14,6 +14,7 @@
 import fse from 'fs-extra';
 import path from 'path';
 import nock from 'nock';
+import xml2js from 'xml2js';
 import { Scope } from 'nock/lib/scope.js';
 
 import assert from 'assert';
@@ -1158,7 +1159,12 @@ describe('MediaHandler', () => {
           height: '74',
           foo: 'hello, world.',
         });
-        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+        return [200, new xml2js.Builder().buildObject({
+          CopyObjectResult: {
+            LastModified: '1985-04-12T23:20:50.52Z',
+            ETag: '"f278c0035a9b4398629613a33abe6451";',
+          },
+        })];
       });
 
     assert.deepStrictEqual(await handler.put(blob), true);
@@ -1207,7 +1213,12 @@ describe('MediaHandler', () => {
           height: '74',
           foo: 'hello, world.',
         });
-        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+        return [200, new xml2js.Builder().buildObject({
+          CopyObjectResult: {
+            LastModified: '1985-04-12T23:20:50.52Z',
+            ETag: '"f278c0035a9b4398629613a33abe6451";',
+          },
+        })];
       });
 
     assert.deepStrictEqual(await handler.put(blob), true);
@@ -1247,7 +1258,12 @@ describe('MediaHandler', () => {
           height: '74',
           foo: 'hello, world.',
         });
-        return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+        return [200, new xml2js.Builder().buildObject({
+          CopyObjectResult: {
+            LastModified: '1985-04-12T23:20:50.52Z',
+            ETag: '"f278c0035a9b4398629613a33abe6451";',
+          },
+        })];
       });
     const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
