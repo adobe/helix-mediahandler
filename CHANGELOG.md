@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/adobe/helix-mediahandler/compare/v2.4.21...v2.5.0) (2024-04-23)
+
+
+### Features
+
+* reject empty blobs ([#219](https://github.com/adobe/helix-mediahandler/issues/219)) ([a3900ef](https://github.com/adobe/helix-mediahandler/commit/a3900ef28b5517ebdad70491a2656b0cbf6ce3d7))
+
 ## [2.4.21](https://github.com/adobe/helix-mediahandler/compare/v2.4.20...v2.4.21) (2024-04-17)
 
 
