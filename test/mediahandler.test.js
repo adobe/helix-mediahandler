@@ -126,6 +126,14 @@ describe('MediaHandler', () => {
     );
   });
 
+  it('creating a media resource from empty buffer without content length should throw', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    await assert.throws(
+      () => handler.createMediaResource(Buffer.from([]), 0),
+      new Error('createExternalResource() needs contentLength or non-empty buffer'),
+    );
+  });
+
   it('uploads a test image to media-bus', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);

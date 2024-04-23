@@ -165,6 +165,9 @@ export default class MediaHandler {
    */
   createMediaResource(buffer, contentLength, contentType, sourceUri = '') {
     if (!contentLength) {
+      if (!buffer.length) {
+        throw Error('createExternalResource() needs contentLength or non-empty buffer');
+      }
       // eslint-disable-next-line no-param-reassign
       contentLength = buffer.length;
     }
