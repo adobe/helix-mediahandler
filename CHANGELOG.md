@@ -1,3 +1,10 @@
+## [2.5.8](https://github.com/adobe/helix-mediahandler/compare/v2.5.7...v2.5.8) (2024-06-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/fetch to v4.1.8 ([#229](https://github.com/adobe/helix-mediahandler/issues/229)) ([91cf1b4](https://github.com/adobe/helix-mediahandler/commit/91cf1b4ca224aaa025adf3266a110646215a3fdd))
+
 ## [2.5.7](https://github.com/adobe/helix-mediahandler/compare/v2.5.6...v2.5.7) (2024-06-06)
 
 
