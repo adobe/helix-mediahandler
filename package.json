@@ -11,7 +11,7 @@
     "semantic-release-dry": "semantic-release --dry-run --branches $CI_BRANCH",
     "semantic-release": "semantic-release",
     "docs": "npx typedoc --options .typedoc.cjs",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
