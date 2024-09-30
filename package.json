@@ -11,7 +11,7 @@
     "semantic-release-dry": "semantic-release --dry-run --branches $CI_BRANCH",
     "semantic-release": "semantic-release",
     "docs": "npx typedoc --options .typedoc.cjs",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -25,8 +25,8 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/fetch": "4.1.9",
-    "@aws-sdk/client-s3": "3.654.0",
-    "@aws-sdk/lib-storage": "3.654.0",
+    "@aws-sdk/client-s3": "3.658.1",
+    "@aws-sdk/lib-storage": "3.658.1",
     "fetch-retry": "6.0.0",
     "image-size": "1.1.1",
     "mime": "4.0.4"
@@ -35,7 +35,7 @@
     "@adobe/eslint-config-helix": "2.0.7",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@types/node": "20.16.5",
+    "@types/node": "20.16.10",
     "c8": "10.1.2",
     "dotenv": "16.4.5",
     "eslint": "8.57.1",
@@ -47,9 +47,9 @@
     "mocha-multi-reporters": "1.5.1",
     "mocha-suppress-logs": "0.5.1",
     "nock": "13.5.5",
-    "semantic-release": "24.1.1",
+    "semantic-release": "24.1.2",
     "typedoc": "0.26.7",
-    "typedoc-plugin-markdown": "4.2.7",
+    "typedoc-plugin-markdown": "4.2.8",
     "typescript": "4.8.3",
     "xml2js": "0.6.2"
   },

@@ -13,13 +13,13 @@
 /* eslint-env mocha */
 import fse from 'fs-extra';
 import path from 'path';
-import nock from 'nock';
 import xml2js from 'xml2js';
 import { Scope } from 'nock/lib/scope.js';
 
 import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
+import { Nock } from './utils.js';
 
 const { version } = pkgJson;
 
@@ -91,13 +91,13 @@ Scope.prototype.putObject = function putObject(expectedMeta, sha = '18bb2f0e55ff
 };
 
 describe('MediaHandler', () => {
-  let savedEnv;
+  let nock;
   beforeEach(() => {
-    savedEnv = { ...process.env };
+    nock = new Nock().env();
   });
 
   afterEach(() => {
-    process.env = savedEnv;
+    nock.done();
   });
 
   ['owner', 'repo', 'ref', 'contentBusId'].forEach((prop) => {
@@ -137,7 +137,7 @@ describe('MediaHandler', () => {
   it('uploads a test image to media-bus', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': `bytes 0-8191/${testImage.length}`,
@@ -150,7 +150,7 @@ describe('MediaHandler', () => {
         'last-modified': '01-01-2021',
       });
 
-    const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
@@ -162,7 +162,7 @@ describe('MediaHandler', () => {
         src: 'https://www.example.com/test_image.png',
       });
 
-    const scope3 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -195,16 +195,12 @@ describe('MediaHandler', () => {
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       uri: 'https://ref--repo--owner.hlx.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
     });
-
-    scope1.done();
-    scope2.done();
-    scope3.done();
   });
 
   it('uploads a test video to media-bus', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testVideo = await fse.readFile(TEST_VIDEO);
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_video.mp4')
       .reply(206, testVideo.subarray(0, 8192), {
         'content-range': `bytes 0-8191/${testVideo.length}`,
@@ -217,7 +213,7 @@ describe('MediaHandler', () => {
         'last-modified': '01-01-2021',
       });
 
-    const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/122d57f2fc8e69edd784262ae09510ce81b2e0902')
       .reply(404)
       .putObject({
@@ -230,7 +226,7 @@ describe('MediaHandler', () => {
         src: 'https://www.example.com/test_video.mp4',
       }, '122d57f2fc8e69edd784262ae09510ce81b2e0902');
 
-    const scope3 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -265,10 +261,6 @@ describe('MediaHandler', () => {
       storageUri: 's3://helix-media-bus/foo-id/122d57f2fc8e69edd784262ae09510ce81b2e0902',
       uri: 'https://ref--repo--owner.hlx.page/media_122d57f2fc8e69edd784262ae09510ce81b2e0902.mp4',
     });
-
-    scope1.done();
-    scope2.done();
-    scope3.done();
   });
 
   it('uploads a test image to media-bus using stream if too big', async () => {
@@ -277,7 +269,7 @@ describe('MediaHandler', () => {
       uploadBufferSize: 1024,
     });
     const testImage = await fse.readFile(TEST_IMAGE);
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': `bytes 0-8191/${testImage.length}`,
@@ -290,7 +282,7 @@ describe('MediaHandler', () => {
         'last-modified': '01-01-2021',
       });
 
-    const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
@@ -314,7 +306,7 @@ describe('MediaHandler', () => {
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
 
-    const scope3 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -359,16 +351,12 @@ describe('MediaHandler', () => {
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       uri: 'https://ref--repo--owner.hlx.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
     });
-
-    scope1.done();
-    scope2.done();
-    scope3.done();
   });
 
   it('does not upload if already exists', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_image.png')
       .reply(301, '', {
         location: 'https://www.example.com/real_image.png',
@@ -379,7 +367,7 @@ describe('MediaHandler', () => {
         'content-length': 8192,
       });
 
-    const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(200, '', {
         'x-amz-meta-alg': '8k',
@@ -411,9 +399,6 @@ describe('MediaHandler', () => {
       storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       uri: 'https://ref--repo--owner.hlx.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
     });
-
-    scope1.done();
-    scope2.done();
   });
 
   it('creates a media resource', async () => {
@@ -569,19 +554,18 @@ describe('MediaHandler', () => {
 
   it('returns null for a non existing resource', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
-    const scope = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/404.png')
       .reply(404);
 
     const blob = await handler.getBlob('https://www.example.com/404.png', 'image/png');
     assert.strictEqual(blob, null);
-    scope.done();
   });
 
   it('retries for a resource returning a 500 first', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_SMALL_IMAGE);
-    const scope = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_small_image.png')
       .reply(500)
       .get('/test_small_image.png')
@@ -591,7 +575,6 @@ describe('MediaHandler', () => {
       });
 
     await handler.fetchHeader('https://www.example.com/test_small_image.png');
-    scope.done();
   });
 
   it('can specify timeout', async () => {
@@ -600,14 +583,13 @@ describe('MediaHandler', () => {
       fetchTimeout: 500,
     });
 
-    const scope = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/slow.png')
       .delay(1000)
       .reply(200);
 
     const blob = await handler.getBlob('https://www.example.com/slow.png', 'image/png');
     assert.strictEqual(blob, null);
-    scope.done();
   });
 
   it('can upload an external resource', async () => {
@@ -619,26 +601,25 @@ describe('MediaHandler', () => {
     const testImage = await fse.readFile(TEST_IMAGE);
     const blob = handler.createMediaResource(testImage, 0, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         width: '477',
+        src: '',
         height: '268',
       });
 
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         width: '477',
+        src: '',
         height: '268',
       });
 
     assert.strictEqual(await handler.put(blob), true);
-
-    scope1.done();
-    scope2.done();
   });
 
   it('can upload an external resource from stream', async () => {
@@ -652,7 +633,7 @@ describe('MediaHandler', () => {
     delete blob.meta.width;
     delete blob.meta.height;
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -671,7 +652,7 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -691,8 +672,6 @@ describe('MediaHandler', () => {
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
     assert.strictEqual(await handler.put(blob), true);
-    scope1.done();
-    scope2.done();
   });
 
   it('can upload a small external resource from stream', async () => {
@@ -704,24 +683,24 @@ describe('MediaHandler', () => {
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
+        src: '',
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
+        src: '',
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
     assert.strictEqual(await handler.put(blob), true);
-    scope1.done();
-    scope2.done();
   });
 
   it('can upload a small external resource from stream with S3 failing', async () => {
@@ -733,20 +712,19 @@ describe('MediaHandler', () => {
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
       .reply(500, 'that went wrong');
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
         width: '58',
+        src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
     assert.strictEqual(await handler.put(blob), false);
-    scope1.done();
-    scope2.done();
   });
 
   it('can upload a small external resource from stream with R2 failing', async () => {
@@ -758,20 +736,19 @@ describe('MediaHandler', () => {
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
         width: '58',
+        src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
       .reply(500, 'that went wrong');
 
     assert.strictEqual(await handler.put(blob), false);
-    scope1.done();
-    scope2.done();
   });
 
   it('can upload a blob from a small image', async () => {
@@ -783,24 +760,24 @@ describe('MediaHandler', () => {
     const testImage = await fse.readFile(TEST_SMALL_IMAGE);
     const blob = handler.createMediaResource(testImage, testImage.length, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
         width: '58',
+        src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
         width: '58',
+        src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
     assert.strictEqual(await handler.upload(blob), true);
-    scope1.done();
-    scope2.done();
   });
 
   it('can disable R2 via options', async () => {
@@ -813,16 +790,16 @@ describe('MediaHandler', () => {
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
+        src: '',
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
     assert.strictEqual(await handler.put(blob), true);
-    scope1.done();
   });
 
   it('can disable R2 via env', async () => {
@@ -835,16 +812,16 @@ describe('MediaHandler', () => {
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
         height: '74',
+        src: '',
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
     assert.strictEqual(await handler.put(blob), true);
-    scope1.done();
   });
 
   it('filter rejects blob', async () => {
@@ -853,7 +830,7 @@ describe('MediaHandler', () => {
       filter: (blob) => (blob.contentType.startsWith('image/')),
     });
 
-    const scope = nock('https://embed.spotify.com')
+    nock('https://embed.spotify.com')
       .get('/?uri=spotify:artist:4gzpq5DPGxSnKTe4SA8HAU')
       .reply(200, 'foo', {
         'content-type': 'text/html',
@@ -861,7 +838,6 @@ describe('MediaHandler', () => {
 
     const blob = await handler.getBlob('https://embed.spotify.com/?uri=spotify:artist:4gzpq5DPGxSnKTe4SA8HAU');
     assert.strictEqual(blob, null);
-    scope.done();
   });
 
   it('uploads a test image to media bus using name prefix', async () => {
@@ -874,7 +850,7 @@ describe('MediaHandler', () => {
 
     const testImage = await fse.readFile(TEST_IMAGE);
 
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': `bytes 0-8191/${testImage.length}`,
@@ -888,7 +864,7 @@ describe('MediaHandler', () => {
         'x-ms-meta-name': 'whoopsie',
       });
 
-    const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
@@ -900,7 +876,7 @@ describe('MediaHandler', () => {
         width: '477',
       }, 'anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4');
 
-    const scope3 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         agent: 'blob-test',
         alg: '8k',
@@ -937,13 +913,9 @@ describe('MediaHandler', () => {
     const resource2 = await handler.getBlob(TEST_IMAGE_URI);
     assert.strictEqual(resource.hash, resource2.hash);
 
-    scope1.done();
-    scope2.done();
-    scope3.done();
-
     // now upload the same image to a different media bus
 
-    const scope4 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': `bytes 0-8191/${testImage.length}`,
@@ -957,7 +929,7 @@ describe('MediaHandler', () => {
         'x-ms-meta-name': 'whoopsie',
       });
 
-    const scope5 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .head('/foo-id-2/anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
@@ -969,7 +941,7 @@ describe('MediaHandler', () => {
         width: '477',
       }, 'anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4', 'foo-id-2');
 
-    const scope6 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         agent: 'blob-test',
         alg: '8k',
@@ -990,16 +962,13 @@ describe('MediaHandler', () => {
 
     const resource3 = await handler2.getBlob(TEST_IMAGE_URI);
     assert.strictEqual(resource.hash, resource3.hash);
-
-    scope4.done();
-    scope5.done();
-    scope6.done();
   });
 
   for (const { auth, title } of [
     { auth: 'Bearer 1234', title: 'property' },
     { auth: () => 'Bearer 1234', title: 'function' },
   ]) {
+    // eslint-disable-next-line no-loop-func
     it(`uses authentication header via ${title}`, async () => {
       const handler = new MediaHandler({
         ...DEFAULT_OPTS,
@@ -1007,7 +976,7 @@ describe('MediaHandler', () => {
       });
 
       const testImage = await fse.readFile(TEST_IMAGE);
-      const scope1 = nock('https://www.example.com')
+      nock('https://www.example.com')
         .get('/test_image.png')
         .matchHeader('authorization', 'Bearer 1234')
         .reply(206, testImage.slice(0, 8192), {
@@ -1022,7 +991,7 @@ describe('MediaHandler', () => {
           'last-modified': '01-01-2021',
         });
 
-      const scope2 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
         .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
         .reply(404)
         .putObject({
@@ -1034,7 +1003,7 @@ describe('MediaHandler', () => {
           width: '477',
         });
 
-      const scope3 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
         .putObject({
           agent: `mediahandler-${version}`,
           alg: '8k',
@@ -1067,10 +1036,6 @@ describe('MediaHandler', () => {
         storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
         uri: 'https://ref--repo--owner.hlx.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
       });
-
-      scope1.done();
-      scope2.done();
-      scope3.done();
     });
   }
 
@@ -1084,7 +1049,7 @@ describe('MediaHandler', () => {
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
     blob.meta.src = '/some-source';
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1106,7 +1071,7 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1132,8 +1097,6 @@ describe('MediaHandler', () => {
     assert.deepStrictEqual(await handler.put(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
-    scope1.done();
-    scope2.done();
   });
 
   it('can update metadata (with R2 disabled)', async () => {
@@ -1147,7 +1110,7 @@ describe('MediaHandler', () => {
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
     blob.meta.src = '/some-source';
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1178,7 +1141,6 @@ describe('MediaHandler', () => {
     assert.deepStrictEqual(await handler.put(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
-    scope1.done();
   });
 
   it('can update metadata with S3 failing', async () => {
@@ -1191,7 +1153,7 @@ describe('MediaHandler', () => {
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
     blob.meta.src = '/some-source';
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1201,7 +1163,7 @@ describe('MediaHandler', () => {
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
       .reply(500, 'that went wrong');
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1232,8 +1194,6 @@ describe('MediaHandler', () => {
     assert.deepStrictEqual(await handler.put(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
-    scope1.done();
-    scope2.done();
   });
 
   it('can update metadata with R2 failing', async () => {
@@ -1246,7 +1206,7 @@ describe('MediaHandler', () => {
     const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
     blob.meta.src = '/some-source';
 
-    const scope1 = nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1273,7 +1233,7 @@ describe('MediaHandler', () => {
           },
         })];
       });
-    const scope2 = nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1287,8 +1247,6 @@ describe('MediaHandler', () => {
     assert.deepStrictEqual(await handler.put(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
-    scope1.done();
-    scope2.done();
   });
 
   it('can handle a bad content-range header', async () => {
@@ -1296,26 +1254,24 @@ describe('MediaHandler', () => {
       ...DEFAULT_OPTS,
     });
     const testImage = await fse.readFile(TEST_SMALL_IMAGE);
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_small_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': 'bytes 0-8191/whoopsie',
         'content-length': 8192,
       });
     await handler.fetchHeader('https://www.example.com/test_small_image.png');
-    scope1.done();
   });
 
   it('aborts spool if fetch fails', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
     });
-    const scope1 = nock('https://www.example.com')
+    nock('https://www.example.com')
       .get('/test_image.png')
       .reply(404, 'nope, not here');
 
     assert.strictEqual(false, await handler.spool({ originalUri: TEST_IMAGE_URI }));
-    scope1.done();
   });
 
   it('sanitizes content type', () => {
