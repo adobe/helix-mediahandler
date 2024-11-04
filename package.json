@@ -35,7 +35,7 @@
     "@adobe/eslint-config-helix": "2.0.8",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@types/node": "20.17.5",
+    "@types/node": "22.8.7",
     "c8": "10.1.2",
     "dotenv": "16.4.5",
     "eslint": "8.57.1",
