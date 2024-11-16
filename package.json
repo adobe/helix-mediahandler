@@ -25,8 +25,8 @@
   "homepage": "https://github.com/adobe/helix-mediahandler#readme",
   "dependencies": {
     "@adobe/fetch": "4.1.9",
-    "@aws-sdk/client-s3": "3.688.0",
-    "@aws-sdk/lib-storage": "3.688.0",
+    "@aws-sdk/client-s3": "3.693.0",
+    "@aws-sdk/lib-storage": "3.693.0",
     "fetch-retry": "6.0.0",
     "image-size": "1.1.1",
     "mime": "4.0.4"
