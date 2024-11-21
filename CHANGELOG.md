@@ -1,3 +1,11 @@
+## [2.5.32](https://github.com/adobe/helix-mediahandler/compare/v2.5.31...v2.5.32) (2024-11-21)
+
+
+### Bug Fixes
+
+* include accept header in fetchHeader ([a82e555](https://github.com/adobe/helix-mediahandler/commit/a82e555965c3c33b58bb5a2906216648c7eafbc0))
+* make accept header more backwards compatible ([0a47fc3](https://github.com/adobe/helix-mediahandler/commit/0a47fc3615ca7bad6e5d79422158e5d40461b319))
+
 ## [2.5.31](https://github.com/adobe/helix-mediahandler/compare/v2.5.30...v2.5.31) (2024-11-16)
 
 
