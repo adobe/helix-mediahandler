@@ -357,7 +357,7 @@ export default class MediaHandler {
       headers: {
         range: 'bytes=0-8192',
         'accept-encoding': 'identity',
-        accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon',
+        accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,*/*;q=0.8',
       },
       cache: 'no-store',
       signal: timeoutSignal(this._fetchTimeout),
