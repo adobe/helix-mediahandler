@@ -1263,6 +1263,17 @@ describe('MediaHandler', () => {
     await handler.fetchHeader('https://www.example.com/test_small_image.png');
   });
 
+  it('fetchHeader includes correct accept header', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+    });
+    nock('https://www.example.com')
+      .get('/test_small_image.png')
+      .matchHeader('accept', 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,*/*;q=0.8')
+      .reply(200);
+    await handler.fetchHeader('https://www.example.com/test_small_image.png');
+  });
+
   it('aborts spool if fetch fails', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
