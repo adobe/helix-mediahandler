@@ -1269,7 +1269,7 @@ describe('MediaHandler', () => {
     });
     nock('https://www.example.com')
       .get('/test_small_image.png')
-      .matchHeader('accept', 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,*/*;q=0.8')
+      .matchHeader('accept', 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/webp,*/*;q=0.8')
       .reply(200);
     await handler.fetchHeader('https://www.example.com/test_small_image.png');
   });
