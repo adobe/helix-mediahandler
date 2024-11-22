@@ -1,3 +1,10 @@
+## [2.5.33](https://github.com/adobe/helix-mediahandler/compare/v2.5.32...v2.5.33) (2024-11-22)
+
+
+### Bug Fixes
+
+* include webp in accept header ([9c1e189](https://github.com/adobe/helix-mediahandler/commit/9c1e189104f1180ad57bf6fa1ed927736d409d29))
+
 ## [2.5.32](https://github.com/adobe/helix-mediahandler/compare/v2.5.31...v2.5.32) (2024-11-21)
 
 
