@@ -1,3 +1,10 @@
+## [2.5.35](https://github.com/adobe/helix-mediahandler/compare/v2.5.34...v2.5.35) (2024-12-03)
+
+
+### Bug Fixes
+
+* add image/avif to Accept request header ([#271](https://github.com/adobe/helix-mediahandler/issues/271)) ([c810784](https://github.com/adobe/helix-mediahandler/commit/c8107840b0d50b30ec90c98800f025a4743cd2b4))
+
 ## [2.5.34](https://github.com/adobe/helix-mediahandler/compare/v2.5.33...v2.5.34) (2024-11-23)
 
 
