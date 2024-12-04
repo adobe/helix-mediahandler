@@ -144,10 +144,15 @@ describe('MediaHandler', () => {
         'content-length': 8192,
       })
       .get('/test_image.png')
-      .reply(200, testImage, {
-        'content-length': testImage.length,
-        'content-type': 'image/png',
-        'last-modified': '01-01-2021',
+      // eslint-disable-next-line prefer-arrow-callback
+      .reply(function cb() {
+        assert.strictEqual(this.req.headers.accept, 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8');
+        assert.strictEqual(this.req.headers['accept-encoding'], 'identity');
+        return [200, testImage, {
+          'content-length': testImage.length,
+          'content-type': 'image/png',
+          'last-modified': '01-01-2021',
+        }];
       });
 
     nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
