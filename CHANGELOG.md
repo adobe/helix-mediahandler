@@ -1,3 +1,10 @@
+## [2.5.37](https://github.com/adobe/helix-mediahandler/compare/v2.5.36...v2.5.37) (2024-12-04)
+
+
+### Bug Fixes
+
+* send 'accept' header on spool as well ([#272](https://github.com/adobe/helix-mediahandler/issues/272)) ([3cca909](https://github.com/adobe/helix-mediahandler/commit/3cca909ddc7c5d6288754159e764281cede365b3))
+
 ## [2.5.36](https://github.com/adobe/helix-mediahandler/compare/v2.5.35...v2.5.36) (2024-12-03)
 
 
