@@ -718,6 +718,7 @@ export default class MediaHandler {
         // azure does not support transfer encoding:
         // HTTP Error 501. The request transfer encoding type is not supported.
         'accept-encoding': 'identity',
+        accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8',
       },
     };
     const auth = this._auth(new URL(blob.originalUri));
