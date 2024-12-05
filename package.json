@@ -1,6 +1,6 @@
 {
   "name": "@adobe/helix-mediahandler",
-  "version": "2.5.37",
+  "version": "2.5.38",
   "description": "Helix Mediahandler Library",
   "main": "src/index.js",
   "type": "module",
