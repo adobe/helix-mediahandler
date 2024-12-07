@@ -1,3 +1,10 @@
+## [2.5.39](https://github.com/adobe/helix-mediahandler/compare/v2.5.38...v2.5.39) (2024-12-07)
+
+
+### Bug Fixes
+
+* unpin @aws-sdk/* and @adobe/fetch ([8390a36](https://github.com/adobe/helix-mediahandler/commit/8390a36b5d4b2a4c674b0170f450f54217175d35))
+
 ## [2.5.38](https://github.com/adobe/helix-mediahandler/compare/v2.5.37...v2.5.38) (2024-12-05)
 
 
