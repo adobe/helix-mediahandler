@@ -111,7 +111,9 @@ export default class MediaHandler {
       this._auth = () => auth;
     }
 
-    const disableR2 = opts.disableR2 || process.env.HELIX_MEDIA_HANDLER_DISABLE_R2;
+    const disableR2 = opts.disableR2
+      || String(process.env.HELIX_MEDIA_HANDLER_DISABLE_R2) === 'true'
+      || String(process.env.HELIX_STORAGE_DISABLE_R2) === 'true';
 
     if (this._awsRegion && this._awsAccessKeyId && this._awsSecretAccessKey) {
       this._log.info('Creating S3Client with credentials');
