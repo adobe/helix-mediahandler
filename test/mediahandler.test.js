@@ -807,8 +807,30 @@ describe('MediaHandler', () => {
     assert.strictEqual(await handler.put(blob), true);
   });
 
-  it('can disable R2 via env', async () => {
+  it('can disable R2 via env (HELIX_MEDIA_HANDLER_DISABLE_R2)', async () => {
     process.env.HELIX_MEDIA_HANDLER_DISABLE_R2 = 'true';
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .putObject({
+        alg: '8k',
+        agent: 'blob-test',
+        height: '74',
+        src: '',
+        width: '58',
+      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
+
+    assert.strictEqual(await handler.put(blob), true);
+  });
+
+  it('can disable R2 via env (HELIX_STORAGE_DISABLE_R2)', async () => {
+    process.env.HELIX_STORAGE_DISABLE_R2 = 'true';
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
