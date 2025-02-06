@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/adobe/helix-mediahandler/compare/v2.5.49...v2.6.0) (2025-02-06)
+
+
+### Features
+
+* accept HELIX_STORAGE_DISABLE_R2 as variable ([#286](https://github.com/adobe/helix-mediahandler/issues/286)) ([decc36c](https://github.com/adobe/helix-mediahandler/commit/decc36c88b92e6a9393fa476b73ee63f63c026b6))
+
 ## [2.5.49](https://github.com/adobe/helix-mediahandler/compare/v2.5.48...v2.5.49) (2025-02-03)
 
 
