@@ -25,8 +25,6 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { Parser } from './mp4/Parser.js';
 import pkgJson from './package.cjs';
 
-sizeOf.disableFS(true);
-
 // cache external urls
 const blobCache = {};
 
