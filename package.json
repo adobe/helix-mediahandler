@@ -28,7 +28,7 @@
     "@aws-sdk/client-s3": "^3.703.0",
     "@aws-sdk/lib-storage": "^3.703.0",
     "fetch-retry": "6.0.0",
-    "image-size": "2.0.0",
+    "image-size": "2.0.1",
     "mime": "4.0.6"
   },
   "devDependencies": {
@@ -42,14 +42,14 @@
     "fs-extra": "11.3.0",
     "husky": "9.1.7",
     "junit-report-builder": "5.1.1",
-    "lint-staged": "15.4.3",
+    "lint-staged": "15.5.0",
     "mocha": "11.1.0",
     "mocha-multi-reporters": "1.5.1",
     "mocha-suppress-logs": "0.5.1",
     "nock": "13.5.6",
     "semantic-release": "24.2.3",
-    "typedoc": "0.27.9",
-    "typedoc-plugin-markdown": "4.4.2",
+    "typedoc": "0.28.0",
+    "typedoc-plugin-markdown": "4.5.0",
     "typescript": "5.7.2",
     "xml2js": "0.6.2"
   },
