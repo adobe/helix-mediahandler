@@ -525,7 +525,7 @@ describe('MediaHandler', () => {
       sourceUri: 'image.jpg',
       storageKey: 'foo-id/1ba15914a0844f8fcdf49e359df0a2f0bec208613',
       storageUri: 's3://helix-media-bus/foo-id/1ba15914a0844f8fcdf49e359df0a2f0bec208613',
-      uri: 'https://ref--repo--owner.hlx.page/media_1ba15914a0844f8fcdf49e359df0a2f0bec208613.jpeg',
+      uri: 'https://ref--repo--owner.hlx.page/media_1ba15914a0844f8fcdf49e359df0a2f0bec208613.jpg',
     });
   });
 
