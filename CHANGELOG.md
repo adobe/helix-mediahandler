@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/adobe/helix-mediahandler/compare/v2.6.12...v2.7.0) (2025-04-22)
+
+
+### Features
+
+* add resource size limiter ([#306](https://github.com/adobe/helix-mediahandler/issues/306)) ([8d59661](https://github.com/adobe/helix-mediahandler/commit/8d5966156d9ee9ba979ee4edc408f3f08b92552e)), closes [#305](https://github.com/adobe/helix-mediahandler/issues/305)
+
 ## [2.6.12](https://github.com/adobe/helix-mediahandler/compare/v2.6.11...v2.6.12) (2025-04-14)
 
 
