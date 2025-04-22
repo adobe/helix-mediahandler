@@ -78,6 +78,9 @@ export default class MediaHandler {
       // maximum time allowed (the default timeout we allow in pipeline is 20s. be conservative)
       _maxTime: opts.maxTime || 10 * 1000,
 
+      // maximum allowed media size. 0 means unlimited (which is the default).
+      _maxSize: opts.maxSize || 0,
+
       // list of uploads (scheduled and completed)
       _uploads: [],
 
@@ -459,6 +462,9 @@ export default class MediaHandler {
    * @private
    */
   _initMediaResource(buffer, contentLength) {
+    if (contentLength > this._maxSize && this._maxSize > 0) {
+      throw new Error(`Resource size exceeds allowed limit: ${contentLength} > ${this._maxSize}`);
+    }
     // compute hashes
     let hashBuffer = buffer;
     if (hashBuffer.length > 8192) {

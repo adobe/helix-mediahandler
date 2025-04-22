@@ -708,6 +708,17 @@ describe('MediaHandler', () => {
     assert.strictEqual(await handler.put(blob), true);
   });
 
+  it('rejects resource that exceeds the allowed size limit', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      maxSize: 256,
+    });
+
+    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
+    await assert.rejects(handler.createMediaResourceFromStream(testStream, 613, 'image/png'), Error('Resource size exceeds allowed limit: 613 > 256'));
+  });
+
   it('can upload a small external resource from stream with S3 failing', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
