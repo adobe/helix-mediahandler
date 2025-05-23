@@ -520,6 +520,7 @@ export default class MediaHandler {
       // at least 1 cmd failed
       const type = result[0].status === 'rejected' ? 'S3' : 'R2';
       const e = rejected[0].reason;
+      /* c8 ignore next */
       log.info(`[${c}] [${type}] Failed to update metadata for ${blob.storageUri}: ${e.$metadata.httpStatusCode || e.message}`);
     }
   }

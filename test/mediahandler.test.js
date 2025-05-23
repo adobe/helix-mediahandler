@@ -730,6 +730,7 @@ describe('MediaHandler', () => {
 
     nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
+      .times(3)
       .reply(500, 'that went wrong');
     nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
@@ -762,6 +763,7 @@ describe('MediaHandler', () => {
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
     nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
+      .times(3)
       .reply(500, 'that went wrong');
 
     assert.strictEqual(await handler.put(blob), false);
@@ -1200,6 +1202,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .times(3)
       .reply(500, 'that went wrong');
     nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
@@ -1280,6 +1283,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
+      .times(3)
       .reply(500, 'that went wrong');
 
     assert.deepStrictEqual(await handler.put(blob), true);
