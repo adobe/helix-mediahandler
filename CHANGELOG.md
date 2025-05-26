@@ -1,3 +1,10 @@
+## [2.7.8](https://github.com/adobe/helix-mediahandler/compare/v2.7.7...v2.7.8) (2025-05-26)
+
+
+### Bug Fixes
+
+* **deps:** update external fixes ([#315](https://github.com/adobe/helix-mediahandler/issues/315)) ([37fd246](https://github.com/adobe/helix-mediahandler/commit/37fd246fab4d6546bccd13999f938ee86fa84c04))
+
 ## [2.7.7](https://github.com/adobe/helix-mediahandler/compare/v2.7.6...v2.7.7) (2025-05-26)
 
 
