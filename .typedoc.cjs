@@ -17,4 +17,4 @@ module.exports = {
   disableSources: true,
   plugin: 'typedoc-plugin-markdown',
   hideBreadcrumbs: true,
-}
+};
