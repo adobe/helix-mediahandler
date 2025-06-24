@@ -1,3 +1,10 @@
+## [2.7.13](https://github.com/adobe/helix-mediahandler/compare/v2.7.12...v2.7.13) (2025-06-24)
+
+
+### Bug Fixes
+
+* use aem.page for media links ([#326](https://github.com/adobe/helix-mediahandler/issues/326)) ([f3527fb](https://github.com/adobe/helix-mediahandler/commit/f3527fbc4a531226b38664802078cb2140251129))
+
 ## [2.7.12](https://github.com/adobe/helix-mediahandler/compare/v2.7.11...v2.7.12) (2025-06-24)
 
 
