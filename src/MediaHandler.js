@@ -785,7 +785,7 @@ export default class MediaHandler {
     if (blob.meta && blob.meta.width && blob.meta.height && !blob.contentType?.match(/^video\/[^/]+$/)) {
       fragment = `#width=${blob.meta.width}&height=${blob.meta.height}`;
     }
-    blob.uri = `https://${ref}--${repo}--${owner}.hlx.page/media_${hash}.${ext}${fragment}`;
+    blob.uri = `https://${ref}--${repo}--${owner}.aem.page/media_${hash}.${ext}${fragment}`;
     return blob;
   }
 
