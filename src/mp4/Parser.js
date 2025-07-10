@@ -148,18 +148,17 @@ export class Parser {
     const { buf, name, log } = this;
 
     if (buf.length < 16) {
-      log.info(`[${name}] Buffer too small: ${buf.length}`);
-      return false;
-    }
-
-    const size = buf.readUInt32BE(0);
-    if (size > buf.length) {
-      log.info(`[${name}] Size points beyond buffer: ${size}`);
+      log.debug(`[${name}] Buffer too small: ${buf.length}`);
       return false;
     }
     const tag = buf.toString('ascii', 4, 8);
     if (tag !== 'ftyp') {
-      log.info(`[${name}] Expected tag 'ftyp', got: ${tag}`);
+      log.debug(`[${name}] Expected tag 'ftyp', got: ${tag}`);
+      return false;
+    }
+    const size = buf.readUInt32BE(0);
+    if (size > buf.length) {
+      log.debug(`[${name}] Size points beyond buffer: ${size}`);
       return false;
     }
     const ftyp = buf.toString('ascii', 8, 12);
