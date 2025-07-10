@@ -1,3 +1,10 @@
+## [2.7.16](https://github.com/adobe/helix-mediahandler/compare/v2.7.15...v2.7.16) (2025-07-10)
+
+
+### Bug Fixes
+
+* looking at something else than a MP4 should not log.info ([#333](https://github.com/adobe/helix-mediahandler/issues/333)) ([da7a530](https://github.com/adobe/helix-mediahandler/commit/da7a53063502067aae0a7f7a6e032f20fb4e1ab9))
+
 ## [2.7.15](https://github.com/adobe/helix-mediahandler/compare/v2.7.14...v2.7.15) (2025-07-07)
 
 
