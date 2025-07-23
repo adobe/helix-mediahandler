@@ -1,3 +1,10 @@
+## [2.7.19](https://github.com/adobe/helix-mediahandler/compare/v2.7.18...v2.7.19) (2025-07-23)
+
+
+### Bug Fixes
+
+* mvhd parsing issue for version 1 ([#336](https://github.com/adobe/helix-mediahandler/issues/336)) ([8f2d9c7](https://github.com/adobe/helix-mediahandler/commit/8f2d9c7cc162c27df07b835020500ca962567f75))
+
 ## [2.7.18](https://github.com/adobe/helix-mediahandler/compare/v2.7.17...v2.7.18) (2025-07-22)
 
 
