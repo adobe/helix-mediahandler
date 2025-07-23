@@ -22,14 +22,19 @@ export class MVHDAtom extends Atom {
     this.assertLength(name, 100);
 
     const version = buf.readUInt8();
-    let timescale = buf.readInt32BE(12);
+
+    // version 0 has 2 u32 fields, version 1 has 2 u64 fields (creation and modification time)
+    // see https://github.com/axiomatic-systems/Bento4/blob/0d86d53a15a04f7b314b1dd61f0bbe08286a0097/Source/C%2B%2B/Core/Ap4MvhdAtom.cpp#L104-L120
+    let offset = version === 0 ? 12 : 20;
+    let timescale = buf.readInt32BE(offset);
     if (timescale <= 0) {
-      log.warn(`[${name}] ${this.getPath()} (${pos + 12}): invalid time scale ${timescale}, defaulting to 1`);
+      log.warn(`[${name}] ${this.getPath()} (${pos + offset}): invalid time scale ${timescale}, defaulting to 1`);
       timescale = 1;
     }
+    offset += 4;
     const duration = version === 1
-      ? Number(buf.readBigUInt64BE(16))
-      : buf.readUInt32BE(16);
+      ? Number(buf.readBigUInt64BE(offset))
+      : buf.readUInt32BE(offset);
     movie.duration = Math.round(duration / timescale);
   }
 }
