@@ -1,3 +1,10 @@
+## [2.7.20](https://github.com/adobe/helix-mediahandler/compare/v2.7.19...v2.7.20) (2025-07-25)
+
+
+### Bug Fixes
+
+* avoid npe ([#337](https://github.com/adobe/helix-mediahandler/issues/337)) ([9452606](https://github.com/adobe/helix-mediahandler/commit/94526069857c3055485a1e75a2a7ba03014ff2ed))
+
 ## [2.7.19](https://github.com/adobe/helix-mediahandler/compare/v2.7.18...v2.7.19) (2025-07-23)
 
 
