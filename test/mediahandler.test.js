@@ -202,6 +202,74 @@ describe('MediaHandler', () => {
     });
   });
 
+  it('uploads a test image to media-bus (head error)', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_IMAGE);
+    nock('https://www.example.com')
+      .get('/test_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+      })
+      .get('/test_image.png')
+      // eslint-disable-next-line prefer-arrow-callback
+      .reply(function cb() {
+        assert.strictEqual(this.req.headers.accept, 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8');
+        assert.strictEqual(this.req.headers['accept-encoding'], 'identity');
+        return [200, testImage, {
+          'content-length': testImage.length,
+          'content-type': 'image/png',
+          'last-modified': '01-01-2021',
+        }];
+      });
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .replyWithError('kaputt')
+      .putObject({
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        width: '477',
+        height: '268',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_image.png',
+      });
+
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        width: '477',
+        height: '268',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_image.png',
+      });
+
+    const resource = await handler.getBlob(TEST_IMAGE_URI);
+    assert.deepStrictEqual(resource, {
+      contentBusId: 'foo-id',
+      contentLength: 143719,
+      contentType: 'image/png',
+      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      lastModified: '01-01-2021',
+      meta: {
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        'source-last-modified': '01-01-2021',
+        src: 'https://www.example.com/test_image.png',
+        height: '268',
+        width: '477',
+      },
+      originalUri: 'https://www.example.com/test_image.png',
+      owner: 'owner',
+      ref: 'ref',
+      repo: 'repo',
+      storageKey: 'foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      storageUri: 's3://helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      uri: 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
+    });
+  });
+
   it('uploads a test video to media-bus', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testVideo = await fse.readFile(TEST_VIDEO);

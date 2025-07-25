@@ -284,8 +284,7 @@ export default class MediaHandler {
       log.info(`[${c}] Metadata loaded for: ${blob.storageUri}`);
       return result.Metadata;
     } catch (e) {
-      /* c8 ignore next */
-      log.info(`[${c}] Blob ${blob.storageUri} does not exist: ${e.$metadata.httpStatusCode || e.message}`);
+      log.info(`[${c}] Blob ${blob.storageUri} does not exist: ${e.$metadata?.httpStatusCode || e.message}`);
       return null;
     }
   }
