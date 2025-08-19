@@ -1,3 +1,10 @@
+## [2.7.24](https://github.com/adobe/helix-mediahandler/compare/v2.7.23...v2.7.24) (2025-08-19)
+
+
+### Bug Fixes
+
+* include content type when updating metadata ([#346](https://github.com/adobe/helix-mediahandler/issues/346)) ([c0fe221](https://github.com/adobe/helix-mediahandler/commit/c0fe221d193f7dd4f6a498a90792a4ff42e91579))
+
 ## [2.7.23](https://github.com/adobe/helix-mediahandler/compare/v2.7.22...v2.7.23) (2025-08-11)
 
 
