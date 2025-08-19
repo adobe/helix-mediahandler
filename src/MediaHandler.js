@@ -502,6 +502,7 @@ export default class MediaHandler {
       CopySource: `${this._bucketId}/${blob.storageKey}`,
       Metadata: blob.meta,
       MetadataDirective: 'REPLACE',
+      ContentType: blob.contentType,
     };
     log.debug(`[${c}] COPY ${blob.storageUri}`);
     // send cmd to s3 and r2 (mirror) in parallel

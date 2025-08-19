@@ -716,6 +716,7 @@ describe('MediaHandler', () => {
       .reply(function reply() {
         assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
         assert.strictEqual(this.req.headers['x-amz-copy-source'], 'helix-media-bus/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4');
+        assert.strictEqual(this.req.headers['content-type'], 'image/png');
         assert.deepStrictEqual(extractMeta(this.req.headers), {
           agent: 'blob-test',
           alg: '8k',
