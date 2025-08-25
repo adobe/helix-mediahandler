@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/adobe/helix-mediahandler/compare/v2.7.24...v2.8.0) (2025-08-25)
+
+
+### Features
+
+* throw specific exception when size exceed limit ([#347](https://github.com/adobe/helix-mediahandler/issues/347)) ([fdfe7b5](https://github.com/adobe/helix-mediahandler/commit/fdfe7b5d7dda3ae43ebc42f76672304929909528))
+
 ## [2.7.24](https://github.com/adobe/helix-mediahandler/compare/v2.7.23...v2.7.24) (2025-08-19)
 
 
