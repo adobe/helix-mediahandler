@@ -20,6 +20,7 @@ import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
 import { Nock } from './utils.js';
+import { SizeTooLargeException } from '../src/index.js';
 
 const { version } = pkgJson;
 
@@ -785,7 +786,7 @@ describe('MediaHandler', () => {
     });
 
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
-    await assert.rejects(handler.createMediaResourceFromStream(testStream, 613, 'image/png'), Error('Resource size exceeds allowed limit: 613 > 256'));
+    await assert.rejects(handler.createMediaResourceFromStream(testStream, 613, 'image/png'), new SizeTooLargeException('Resource size exceeds allowed limit: 613 > 256', 613, 256));
   });
 
   it('can upload a small external resource from stream with S3 failing', async () => {
