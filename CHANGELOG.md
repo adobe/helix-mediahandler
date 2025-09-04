@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/adobe/helix-mediahandler/compare/v2.8.2...v2.9.0) (2025-09-04)
+
+
+### Features
+
+* measure upload time (similar to helix-shared-storage) ([#350](https://github.com/adobe/helix-mediahandler/issues/350)) ([391f001](https://github.com/adobe/helix-mediahandler/commit/391f0017b722923dec025948b7c91f06abe68a0c))
+
 ## [2.8.2](https://github.com/adobe/helix-mediahandler/compare/v2.8.1...v2.8.2) (2025-09-01)
 
 
