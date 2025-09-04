@@ -665,28 +665,39 @@ export default class MediaHandler {
       s3Body = params.Body;
       r2Body = params.Body;
     }
-    const s3Upload = new Upload({
+    const uploads = [];
+    const measures = [];
+
+    uploads.push(new Upload({
       client: this._s3,
       params: { ...params, Body: s3Body },
-    });
-    const r2Upload = this._r2
-      ? new Upload({
+    }));
+    if (this._r2) {
+      uploads.push(new Upload({
         client: this._r2,
         params: { ...params, Body: r2Body },
-      })
-      : null;
+      }));
+    }
 
     // upload to s3 and r2 (mirror) in parallel
-    const result = await Promise.allSettled([
-      s3Upload.done(),
-      r2Upload ? r2Upload.done() : Promise.resolve(),
-    ]);
+    const tasks = uploads.map(async (upload, index) => {
+      const t0 = Date.now();
+      const ret = await upload.done();
+      const t1 = Date.now();
+      measures[index] = `${(t1 - t0) / 1000}s`;
+
+      return ret;
+    });
+
+    // upload to s3 and r2 (mirror) in parallel
+    const result = await Promise.allSettled(tasks);
     const rejected = result.filter(({ status }) => status === 'rejected');
+
     // discard data
     delete blob.stream;
     delete blob.data;
     if (!rejected.length) {
-      log.info(`[${c}] Upload done ${blob.storageKey}: ${result[0].value.Location}`);
+      log.info(`[${c}] Upload done ${blob.storageKey}: ${result[0].value.Location} (${measures.join('/')})`);
     } else {
       // at least 1 cmd failed
       const type = result[0].status === 'rejected' ? 'S3' : 'R2';
