@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/adobe/helix-mediahandler"
+    "url": "https://github.com/adobe/helix-mediahandler.git"
   },
   "author": "",
   "license": "Apache-2.0",
