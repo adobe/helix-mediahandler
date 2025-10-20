@@ -1,3 +1,10 @@
+## [2.9.3](https://github.com/adobe/helix-mediahandler/compare/v2.9.2...v2.9.3) (2025-10-20)
+
+
+### Bug Fixes
+
+* use default region ([#361](https://github.com/adobe/helix-mediahandler/issues/361)) ([dc063d5](https://github.com/adobe/helix-mediahandler/commit/dc063d52e0db09a4a0cf461b8a952b1172089337))
+
 ## [2.9.2](https://github.com/adobe/helix-mediahandler/compare/v2.9.1...v2.9.2) (2025-09-15)
 
 
