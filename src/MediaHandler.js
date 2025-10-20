@@ -53,7 +53,7 @@ export default class MediaHandler {
    */
   constructor(opts = {}) {
     Object.assign(this, {
-      _awsRegion: opts.awsRegion,
+      _awsRegion: opts.awsRegion = 'us-east-1',
       _awsAccessKeyId: opts.awsAccessKeyId,
       _awsSecretAccessKey: opts.awsSecretAccessKey,
       _r2AccountId: opts.r2AccountId,
