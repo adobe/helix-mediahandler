@@ -1,3 +1,10 @@
+## [2.9.4](https://github.com/adobe/helix-mediahandler/compare/v2.9.3...v2.9.4) (2025-10-20)
+
+
+### Bug Fixes
+
+* trigger release ([5177aa2](https://github.com/adobe/helix-mediahandler/commit/5177aa252910be90969e17828cff3f8a1ec76c78))
+
 ## [2.9.3](https://github.com/adobe/helix-mediahandler/compare/v2.9.2...v2.9.3) (2025-10-20)
 
 
