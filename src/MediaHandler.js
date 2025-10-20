@@ -128,7 +128,9 @@ export default class MediaHandler {
       });
     } else {
       this._log.info('Creating S3Client without credentials');
-      this._s3 = new S3Client();
+      this._s3 = new S3Client({
+        region: this._awsRegion,
+      });
     }
     if (disableR2) {
       this._log.info('R2 S3Client disabled.');
