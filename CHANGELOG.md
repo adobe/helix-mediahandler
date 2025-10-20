@@ -1,3 +1,10 @@
+## [2.9.5](https://github.com/adobe/helix-mediahandler/compare/v2.9.4...v2.9.5) (2025-10-20)
+
+
+### Bug Fixes
+
+* update semantic-release to v25 and node to 24.x for OIDC ([feb05b2](https://github.com/adobe/helix-mediahandler/commit/feb05b2560ac511e78a0e6e1948194051ce56635))
+
 ## [2.9.4](https://github.com/adobe/helix-mediahandler/compare/v2.9.3...v2.9.4) (2025-10-20)
 
 
