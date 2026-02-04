@@ -121,7 +121,7 @@ describe('MediaHandler', () => {
   it('tracks uploaded images via createTrackingMediaHandler', async () => {
     const baseHandler = {
       fetchContext: { reset: () => Promise.resolve() },
-      async getBlob(url) {
+      async getBlob(_) {
         return {
           uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
           hash: 'abc',
