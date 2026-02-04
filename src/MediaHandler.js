@@ -543,7 +543,7 @@ export default class MediaHandler {
     if (!this._noCache && sourceUri in this._cache) {
       const cachedBlob = this._cache[sourceUri];
       // track cached images too (from previous session), mark as not uploaded in this session
-      if (cachedBlob.uri && cachedBlob.hash && !this._uploadedImages.has(cachedBlob.hash)) {
+      if (!this._uploadedImages.has(cachedBlob.hash)) {
         this._uploadedImages.set(cachedBlob.hash, {
           uri: cachedBlob.uri,
           hash: cachedBlob.hash,
@@ -569,7 +569,7 @@ export default class MediaHandler {
     }
 
     // track uploaded images (use Map to deduplicate by hash)
-    if (blob.uri && blob.hash && !this._uploadedImages.has(blob.hash)) {
+    if (!this._uploadedImages.has(blob.hash)) {
       this._uploadedImages.set(blob.hash, {
         uri: blob.uri,
         hash: blob.hash,
