@@ -95,6 +95,9 @@ export default class MediaHandler {
       _namePrefix: opts.namePrefix || '',
 
       _blobAgent: opts.blobAgent || `mediahandler-${pkgJson.version}`,
+
+      // tracking: map of uploaded images (keyed by hash to deduplicate)
+      _uploadedImages: new Map(),
     });
 
     if (!this._owner || !this._repo || !this._ref || !this._contentBusId) {
@@ -538,7 +541,20 @@ export default class MediaHandler {
    */
   async getBlob(sourceUri, src) {
     if (!this._noCache && sourceUri in this._cache) {
-      return this._cache[sourceUri];
+      const cachedBlob = this._cache[sourceUri];
+      // track cached images too (from previous session), mark as not uploaded in this session
+      if (!this._uploadedImages.has(cachedBlob.hash)) {
+        this._uploadedImages.set(cachedBlob.hash, {
+          uri: cachedBlob.uri,
+          hash: cachedBlob.hash,
+          contentType: cachedBlob.contentType,
+          width: cachedBlob.meta?.width,
+          height: cachedBlob.meta?.height,
+          originalUri: sourceUri,
+          uploaded: false, // cached from previous session, not uploaded now
+        });
+      }
+      return cachedBlob;
     }
     const blob = await this.transfer(sourceUri, src);
     if (!blob) {
@@ -551,7 +567,38 @@ export default class MediaHandler {
     if (!this._noCache) {
       this._cache[sourceUri] = blob;
     }
+
+    // track uploaded images (use Map to deduplicate by hash)
+    if (!this._uploadedImages.has(blob.hash)) {
+      this._uploadedImages.set(blob.hash, {
+        uri: blob.uri,
+        hash: blob.hash,
+        contentType: blob.contentType,
+        width: blob.meta?.width,
+        height: blob.meta?.height,
+        originalUri: sourceUri,
+        uploaded: blob.uploaded, // true = newly uploaded, false = reused from storage
+      });
+    }
+
     return blob;
+  }
+
+  /**
+   * Returns the list of images that have been processed via getBlob().
+   * Uses a Map internally to deduplicate by hash.
+   * @returns {Array<Object>} Array of tracked image info with uri, hash, contentType,
+   *                          width, height, originalUri, and uploaded properties.
+   */
+  getUploadedImages() {
+    return Array.from(this._uploadedImages.values());
+  }
+
+  /**
+   * Clears the list of tracked uploaded images.
+   */
+  clearUploadedImages() {
+    this._uploadedImages = new Map();
   }
 
   /**
@@ -579,6 +626,9 @@ export default class MediaHandler {
     const exist = await this.checkBlobExists(blob);
     if (!exist) {
       await this.upload(blob);
+      blob.uploaded = true;
+    } else {
+      blob.uploaded = false;
     }
     return blob;
   }

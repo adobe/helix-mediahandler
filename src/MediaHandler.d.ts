@@ -113,6 +113,11 @@ export declare interface MediaResource {
   contentLength: number,
 
   /**
+   * True if the blob was uploaded in this session, false if reused.
+   */
+  uploaded?: boolean,
+
+  /**
    * Data of the blob while processing.
    */
   data?: Buffer,
@@ -137,6 +142,19 @@ declare type MediaFilter = (blob: MediaResource) => boolean;
  * Provide the auth header for the given url
  */
 declare type AuthHeaderProvider = (url: URL) => string;
+
+/**
+ * Tracked image information
+ */
+export declare interface TrackedImage {
+  uri: string;
+  hash: string;
+  contentType: string;
+  width?: string;
+  height?: string;
+  originalUri: string;
+  uploaded: boolean;
+}
 
 export declare interface MediaHandlerOptions {
   /**
@@ -348,4 +366,15 @@ export declare class MediaHandler {
    * @returns {Promise<boolean>} {@code true} if successful.
    */
   spool(blob: MediaResource): Promise<boolean>;
+
+  /**
+   * Returns the list of images that have been processed via getBlob().
+   * @returns {TrackedImage[]} Array of tracked image information.
+   */
+  getUploadedImages(): TrackedImage[];
+
+  /**
+   * Clears the list of tracked uploaded images.
+   */
+  clearUploadedImages(): void;
 }

@@ -118,6 +118,107 @@ describe('MediaHandler', () => {
     assert.doesNotThrow(() => new MediaHandler(opts));
   });
 
+  it('tracks uploaded images via getUploadedImages()', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    nock('https://www.example.com')
+      .get('/test_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      });
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(200, '', {
+        'x-amz-meta-src': 'https://www.example.com/test_image.png',
+        'x-amz-meta-width': '477',
+        'x-amz-meta-height': '268',
+      });
+
+    // clear any previous tracking
+    handler.clearUploadedImages();
+
+    const blob = await handler.getBlob('https://www.example.com/test_image.png');
+
+    assert.ok(blob);
+    assert.strictEqual(blob.uri, 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268');
+
+    const uploadedImages = handler.getUploadedImages();
+    assert.strictEqual(uploadedImages.length, 1);
+    assert.deepStrictEqual(uploadedImages[0], {
+      uri: 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
+      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      contentType: 'image/png',
+      width: '477',
+      height: '268',
+      originalUri: 'https://www.example.com/test_image.png',
+      uploaded: false,
+    });
+
+    // verify clearUploadedImages works
+    handler.clearUploadedImages();
+    assert.strictEqual(handler.getUploadedImages().length, 0);
+  });
+
+  it('tracks cached images from previous session as not uploaded', async () => {
+    // Use a unique contentBusId for this test to avoid interference
+    const testContentBusId = 'cached-image-test-id';
+    const testOpts = {
+      ...DEFAULT_OPTS,
+      contentBusId: testContentBusId,
+      noCache: false, // enable caching
+    };
+
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    // First handler fetches and caches the image
+    const handler1 = new MediaHandler(testOpts);
+
+    nock('https://www.example.com')
+      .get('/cached_test_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      });
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head(`/${testContentBusId}/18bb2f0e55ff47be3fc32a575590b53e060b911f4`)
+      .reply(200, '', {
+        'x-amz-meta-src': 'https://www.example.com/cached_test_image.png',
+        'x-amz-meta-width': '477',
+        'x-amz-meta-height': '268',
+      });
+
+    const blob1 = await handler1.getBlob('https://www.example.com/cached_test_image.png');
+    assert.ok(blob1);
+    assert.strictEqual(handler1.getUploadedImages().length, 1);
+
+    // Second handler (simulating a new session) - has empty _uploadedImages but shares the cache
+    const handler2 = new MediaHandler(testOpts);
+
+    // No nock needed - should hit the cache from handler1
+    const blob2 = await handler2.getBlob('https://www.example.com/cached_test_image.png');
+    assert.ok(blob2);
+    assert.strictEqual(blob2.hash, blob1.hash);
+
+    // Verify the cached image is tracked with uploaded: false
+    const uploadedImages = handler2.getUploadedImages();
+    assert.strictEqual(uploadedImages.length, 1);
+    assert.deepStrictEqual(uploadedImages[0], {
+      uri: 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
+      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      contentType: 'image/png',
+      width: '477',
+      height: '268',
+      originalUri: 'https://www.example.com/cached_test_image.png',
+      uploaded: false, // cached from previous session
+    });
+  });
+
   it('creating a media resource from stream without content length should throw', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
@@ -193,6 +294,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -261,6 +363,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -327,6 +430,7 @@ describe('MediaHandler', () => {
         height: '640',
         duration: '3',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_video.mp4',
       owner: 'owner',
       ref: 'ref',
@@ -417,6 +521,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -465,6 +570,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: false,
       originalUri: 'https://www.example.com/real_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -1011,6 +1117,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -1138,6 +1245,7 @@ describe('MediaHandler', () => {
           height: '268',
           width: '477',
         },
+        uploaded: true,
         originalUri: 'https://www.example.com/test_image.png',
         owner: 'owner',
         ref: 'ref',
