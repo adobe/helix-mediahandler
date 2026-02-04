@@ -1,3 +1,17 @@
+# [2.10.0](https://github.com/adobe/helix-mediahandler/compare/v2.9.5...v2.10.0) (2026-02-04)
+
+
+### Bug Fixes
+
+* lint error ([d8ab170](https://github.com/adobe/helix-mediahandler/commit/d8ab1701ccc6109563d9b0a672736cbe60083de4))
+* reduce complexity ([78652fd](https://github.com/adobe/helix-mediahandler/commit/78652fd6d118938c4c5985ee244efcef7df3f519))
+* switch to Map for dedupe and also capture cached images to get the full picture ([e80b6f9](https://github.com/adobe/helix-mediahandler/commit/e80b6f9851664233d186c37ba434b1d2b85d14da))
+
+
+### Features
+
+* return if blob was uploaded or not and common function to use in *2md services ([71ce766](https://github.com/adobe/helix-mediahandler/commit/71ce76639b5f50a887865795926976ce4de43d6e))
+
 ## [2.9.5](https://github.com/adobe/helix-mediahandler/compare/v2.9.4...v2.9.5) (2025-10-20)
 
 
