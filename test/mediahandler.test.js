@@ -20,7 +20,7 @@ import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
 import { Nock } from './utils.js';
-import { SizeTooLargeException, createTrackingMediaHandler } from '../src/index.js';
+import { SizeTooLargeException } from '../src/index.js';
 
 const { version } = pkgJson;
 
@@ -118,40 +118,49 @@ describe('MediaHandler', () => {
     assert.doesNotThrow(() => new MediaHandler(opts));
   });
 
-  it('tracks uploaded images via createTrackingMediaHandler', async () => {
-    const baseHandler = {
-      fetchContext: { reset: () => Promise.resolve() },
-      async getBlob(_) {
-        return {
-          uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
-          hash: 'abc',
-          contentType: 'image/png',
-          meta: { width: '10', height: '20' },
-          uploaded: true,
-        };
-      },
-    };
+  it('tracks uploaded images via getUploadedImages()', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_IMAGE);
 
-    const { handler, getUploadedImages } = createTrackingMediaHandler(baseHandler);
-    const blob = await handler.getBlob('https://origin.example.com/image.png');
+    nock('https://www.example.com')
+      .get('/test_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      });
 
-    assert.strictEqual(handler.fetchContext, baseHandler.fetchContext);
-    assert.deepStrictEqual(blob, {
-      uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
-      hash: 'abc',
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(200, '', {
+        'x-amz-meta-src': 'https://www.example.com/test_image.png',
+        'x-amz-meta-width': '477',
+        'x-amz-meta-height': '268',
+      });
+
+    // clear any previous tracking
+    handler.clearUploadedImages();
+
+    const blob = await handler.getBlob('https://www.example.com/test_image.png');
+
+    assert.ok(blob);
+    assert.strictEqual(blob.uri, 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268');
+
+    const uploadedImages = handler.getUploadedImages();
+    assert.strictEqual(uploadedImages.length, 1);
+    assert.deepStrictEqual(uploadedImages[0], {
+      uri: 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
+      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       contentType: 'image/png',
-      meta: { width: '10', height: '20' },
-      uploaded: true,
+      width: '477',
+      height: '268',
+      originalUri: 'https://www.example.com/test_image.png',
+      uploaded: false,
     });
-    assert.deepStrictEqual(getUploadedImages(), [{
-      uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
-      hash: 'abc',
-      contentType: 'image/png',
-      width: '10',
-      height: '20',
-      originalUri: 'https://origin.example.com/image.png',
-      uploaded: true,
-    }]);
+
+    // verify clearUploadedImages works
+    handler.clearUploadedImages();
+    assert.strictEqual(handler.getUploadedImages().length, 0);
   });
 
   it('creating a media resource from stream without content length should throw', async () => {

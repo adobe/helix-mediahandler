@@ -11,4 +11,3 @@
  */
 export * from './MediaHandler';
 export * from './mp4/Parser';
-export * from './tracking';

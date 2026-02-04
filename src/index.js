@@ -11,12 +11,10 @@
  */
 import MediaHandler from './MediaHandler.js';
 import { Parser as MP4Parser } from './mp4/Parser.js';
-import { createTrackingMediaHandler } from './tracking.js';
 
 export * from './SizeTooLargeException.js';
 
 export {
   MediaHandler,
   MP4Parser,
-  createTrackingMediaHandler,
 };

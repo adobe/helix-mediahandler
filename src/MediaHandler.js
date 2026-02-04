@@ -95,6 +95,9 @@ export default class MediaHandler {
       _namePrefix: opts.namePrefix || '',
 
       _blobAgent: opts.blobAgent || `mediahandler-${pkgJson.version}`,
+
+      // tracking: list of uploaded images
+      _uploadedImages: [],
     });
 
     if (!this._owner || !this._repo || !this._ref || !this._contentBusId) {
@@ -551,7 +554,37 @@ export default class MediaHandler {
     if (!this._noCache) {
       this._cache[sourceUri] = blob;
     }
+
+    // track uploaded images
+    if (blob.uri) {
+      this._uploadedImages.push({
+        uri: blob.uri,
+        hash: blob.hash,
+        contentType: blob.contentType,
+        width: blob.meta?.width,
+        height: blob.meta?.height,
+        originalUri: sourceUri,
+        uploaded: blob.uploaded, // true = newly uploaded, false = reused from storage
+      });
+    }
+
     return blob;
+  }
+
+  /**
+   * Returns the list of images that have been processed via getBlob().
+   * @returns {Array<Object>} Array of tracked image info with uri, hash, contentType,
+   *                          width, height, originalUri, and uploaded properties.
+   */
+  getUploadedImages() {
+    return this._uploadedImages;
+  }
+
+  /**
+   * Clears the list of tracked uploaded images.
+   */
+  clearUploadedImages() {
+    this._uploadedImages = [];
   }
 
   /**
