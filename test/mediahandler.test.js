@@ -20,7 +20,7 @@ import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
 import { Nock } from './utils.js';
-import { SizeTooLargeException } from '../src/index.js';
+import { SizeTooLargeException, createTrackingMediaHandler } from '../src/index.js';
 
 const { version } = pkgJson;
 
@@ -118,6 +118,42 @@ describe('MediaHandler', () => {
     assert.doesNotThrow(() => new MediaHandler(opts));
   });
 
+  it('tracks uploaded images via createTrackingMediaHandler', async () => {
+    const baseHandler = {
+      fetchContext: { reset: () => Promise.resolve() },
+      async getBlob(url) {
+        return {
+          uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
+          hash: 'abc',
+          contentType: 'image/png',
+          meta: { width: '10', height: '20' },
+          uploaded: true,
+        };
+      },
+    };
+
+    const { handler, getUploadedImages } = createTrackingMediaHandler(baseHandler);
+    const blob = await handler.getBlob('https://origin.example.com/image.png');
+
+    assert.strictEqual(handler.fetchContext, baseHandler.fetchContext);
+    assert.deepStrictEqual(blob, {
+      uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
+      hash: 'abc',
+      contentType: 'image/png',
+      meta: { width: '10', height: '20' },
+      uploaded: true,
+    });
+    assert.deepStrictEqual(getUploadedImages(), [{
+      uri: 'https://ref--repo--owner.aem.page/media_abc.png#width=10&height=20',
+      hash: 'abc',
+      contentType: 'image/png',
+      width: '10',
+      height: '20',
+      originalUri: 'https://origin.example.com/image.png',
+      uploaded: true,
+    }]);
+  });
+
   it('creating a media resource from stream without content length should throw', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
@@ -193,6 +229,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -261,6 +298,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -327,6 +365,7 @@ describe('MediaHandler', () => {
         height: '640',
         duration: '3',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_video.mp4',
       owner: 'owner',
       ref: 'ref',
@@ -417,6 +456,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -465,6 +505,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: false,
       originalUri: 'https://www.example.com/real_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -1011,6 +1052,7 @@ describe('MediaHandler', () => {
         height: '268',
         width: '477',
       },
+      uploaded: true,
       originalUri: 'https://www.example.com/test_image.png',
       owner: 'owner',
       ref: 'ref',
@@ -1138,6 +1180,7 @@ describe('MediaHandler', () => {
           height: '268',
           width: '477',
         },
+        uploaded: true,
         originalUri: 'https://www.example.com/test_image.png',
         owner: 'owner',
         ref: 'ref',

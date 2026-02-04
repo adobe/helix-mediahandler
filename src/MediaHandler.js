@@ -579,6 +579,9 @@ export default class MediaHandler {
     const exist = await this.checkBlobExists(blob);
     if (!exist) {
       await this.upload(blob);
+      blob.uploaded = true;
+    } else {
+      blob.uploaded = false;
     }
     return blob;
   }

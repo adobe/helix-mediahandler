@@ -113,6 +113,11 @@ export declare interface MediaResource {
   contentLength: number,
 
   /**
+   * True if the blob was uploaded in this session, false if reused.
+   */
+  uploaded?: boolean,
+
+  /**
    * Data of the blob while processing.
    */
   data?: Buffer,
