@@ -377,4 +377,14 @@ export declare class MediaHandler {
    * Clears the list of tracked uploaded images.
    */
   clearUploadedImages(): void;
+
+  /**
+   * Tracks a media resource that was processed externally (e.g., from embedded binary data).
+   * This allows callers who use createMediaResource/checkBlobExists/upload directly
+   * to still have their media tracked for getUploadedImages().
+   *
+   * @param {MediaResource} blob - the resource object to track
+   * @param {string} [originalUri] - optional original source URI (overrides blob.originalUri/meta.src)
+   */
+  trackMedia(blob: MediaResource, originalUri?: string): void;
 }

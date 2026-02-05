@@ -543,17 +543,7 @@ export default class MediaHandler {
     if (!this._noCache && sourceUri in this._cache) {
       const cachedBlob = this._cache[sourceUri];
       // track cached images too (from previous session), mark as not uploaded in this session
-      if (!this._uploadedImages.has(cachedBlob.hash)) {
-        this._uploadedImages.set(cachedBlob.hash, {
-          uri: cachedBlob.uri,
-          hash: cachedBlob.hash,
-          contentType: cachedBlob.contentType,
-          width: cachedBlob.meta?.width,
-          height: cachedBlob.meta?.height,
-          originalUri: sourceUri,
-          uploaded: false, // cached from previous session, not uploaded now
-        });
-      }
+      this.trackMedia(cachedBlob, sourceUri);
       return cachedBlob;
     }
     const blob = await this.transfer(sourceUri, src);
@@ -569,17 +559,7 @@ export default class MediaHandler {
     }
 
     // track uploaded images (use Map to deduplicate by hash)
-    if (!this._uploadedImages.has(blob.hash)) {
-      this._uploadedImages.set(blob.hash, {
-        uri: blob.uri,
-        hash: blob.hash,
-        contentType: blob.contentType,
-        width: blob.meta?.width,
-        height: blob.meta?.height,
-        originalUri: sourceUri,
-        uploaded: blob.uploaded, // true = newly uploaded, false = reused from storage
-      });
-    }
+    this.trackMedia(blob, sourceUri);
 
     return blob;
   }
@@ -599,6 +579,32 @@ export default class MediaHandler {
    */
   clearUploadedImages() {
     this._uploadedImages = new Map();
+  }
+
+  /**
+   * Tracks a media resource that was processed externally (e.g., from embedded binary data).
+   * This allows callers who use createMediaResource/checkBlobExists/upload directly
+   * to still have their media tracked for getUploadedImages().
+   *
+   * @param {MediaResource} blob - the resource object to track
+   * @param {string} [originalUri] - optional original source URI
+   *        (overrides blob.originalUri/meta.src)
+   */
+  trackMedia(blob, originalUri) {
+    if (!blob || !blob.hash) {
+      return;
+    }
+    if (!this._uploadedImages.has(blob.hash)) {
+      this._uploadedImages.set(blob.hash, {
+        uri: blob.uri,
+        hash: blob.hash,
+        contentType: blob.contentType,
+        width: blob.meta?.width,
+        height: blob.meta?.height,
+        originalUri: originalUri || blob.originalUri || blob.meta?.src,
+        uploaded: blob.uploaded ?? false,
+      });
+    }
   }
 
   /**

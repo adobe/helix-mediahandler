@@ -163,6 +163,53 @@ describe('MediaHandler', () => {
     assert.strictEqual(handler.getUploadedImages().length, 0);
   });
 
+  it('tracks media via trackMedia() for externally processed blobs', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    // Create a media resource manually (simulating docx2md flow)
+    const blob = handler.createMediaResource(testImage, testImage.length, 'image/png', 'https://source.com/doc.docx');
+    blob.uploaded = true;
+
+    // Track it manually
+    handler.trackMedia(blob);
+
+    const uploadedImages = handler.getUploadedImages();
+    assert.strictEqual(uploadedImages.length, 1);
+    assert.deepStrictEqual(uploadedImages[0], {
+      uri: 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
+      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
+      contentType: 'image/png',
+      width: '477',
+      height: '268',
+      originalUri: 'https://source.com/doc.docx', // from blob.meta.src
+      uploaded: true,
+    });
+
+    // Verify duplicate tracking is prevented
+    handler.trackMedia(blob);
+    assert.strictEqual(handler.getUploadedImages().length, 1);
+
+    // Verify null/invalid blobs are handled gracefully
+    handler.trackMedia(null);
+    handler.trackMedia({});
+    handler.trackMedia({ uri: 'test' }); // no hash
+    assert.strictEqual(handler.getUploadedImages().length, 1);
+  });
+
+  it('trackMedia defaults uploaded to false when not set', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    const blob = handler.createMediaResource(testImage, testImage.length, 'image/png');
+    // Don't set blob.uploaded
+
+    handler.trackMedia(blob);
+
+    const uploadedImages = handler.getUploadedImages();
+    assert.strictEqual(uploadedImages[0].uploaded, false);
+  });
+
   it('tracks cached images from previous session as not uploaded', async () => {
     // Use a unique contentBusId for this test to avoid interference
     const testContentBusId = 'cached-image-test-id';
@@ -893,6 +940,29 @@ describe('MediaHandler', () => {
 
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
     await assert.rejects(handler.createMediaResourceFromStream(testStream, 613, 'image/png'), new SizeTooLargeException('Resource size exceeds allowed limit: 613 > 256', 613, 256));
+  });
+
+  it('rejects resource that exceeds the allowed size limit via getBlob', async () => {
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      maxSize: 256, // image is ~60KB, so this should reject
+    });
+
+    nock('https://www.example.com')
+      .get('/large_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      });
+
+    await assert.rejects(
+      handler.getBlob('https://www.example.com/large_image.png'),
+      (err) => err instanceof SizeTooLargeException && err.message.includes('Resource size exceeds allowed limit'),
+    );
   });
 
   it('can upload a small external resource from stream with S3 failing', async () => {
