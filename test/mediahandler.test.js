@@ -118,7 +118,7 @@ describe('MediaHandler', () => {
     assert.doesNotThrow(() => new MediaHandler(opts));
   });
 
-  it('tracks uploaded images via getUploadedImages()', async () => {
+  it('tracks existing blobs via checkBlobExists (uploaded=false)', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
 
@@ -154,7 +154,6 @@ describe('MediaHandler', () => {
       contentType: 'image/png',
       width: '477',
       height: '268',
-      originalUri: 'https://www.example.com/test_image.png',
       uploaded: false,
     });
 
@@ -163,50 +162,73 @@ describe('MediaHandler', () => {
     assert.strictEqual(handler.getUploadedImages().length, 0);
   });
 
-  it('tracks media via trackMedia() for externally processed blobs', async () => {
+  it('tracks blobs automatically via low-level APIs (simulating docx2md flow)', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
 
-    // Create a media resource manually (simulating docx2md flow)
+    // Simulate docx2md flow: createMediaResource -> checkBlobExists -> upload
     const blob = handler.createMediaResource(testImage, testImage.length, 'image/png', 'https://source.com/doc.docx');
-    blob.uploaded = true;
 
-    // Track it manually
-    handler.trackMedia(blob);
+    // Mock: blob doesn't exist
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404)
+      .putObject({
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        width: '477',
+        height: '268',
+        src: 'https://source.com/doc.docx',
+      });
 
+    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      .putObject({
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        width: '477',
+        height: '268',
+        src: 'https://source.com/doc.docx',
+      });
+
+    handler.clearUploadedImages();
+
+    const exists = await handler.checkBlobExists(blob);
+    assert.strictEqual(exists, false);
+    // Not tracked yet since it doesn't exist
+    assert.strictEqual(handler.getUploadedImages().length, 0);
+
+    await handler.upload(blob);
+
+    // Now it should be tracked as uploaded
     const uploadedImages = handler.getUploadedImages();
     assert.strictEqual(uploadedImages.length, 1);
-    assert.deepStrictEqual(uploadedImages[0], {
-      uri: 'https://ref--repo--owner.aem.page/media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268',
-      hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
-      contentType: 'image/png',
-      width: '477',
-      height: '268',
-      originalUri: 'https://source.com/doc.docx', // from blob.meta.src
-      uploaded: true,
-    });
-
-    // Verify duplicate tracking is prevented
-    handler.trackMedia(blob);
-    assert.strictEqual(handler.getUploadedImages().length, 1);
-
-    // Verify null/invalid blobs are handled gracefully
-    handler.trackMedia(null);
-    handler.trackMedia({});
-    handler.trackMedia({ uri: 'test' }); // no hash
-    assert.strictEqual(handler.getUploadedImages().length, 1);
+    assert.strictEqual(uploadedImages[0].uploaded, true);
+    assert.strictEqual(uploadedImages[0].hash, '18bb2f0e55ff47be3fc32a575590b53e060b911f4');
   });
 
-  it('trackMedia defaults uploaded to false when not set', async () => {
+  it('tracks existing blobs via low-level checkBlobExists (simulating docx2md flow)', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);
 
+    // Simulate docx2md flow where blob already exists
     const blob = handler.createMediaResource(testImage, testImage.length, 'image/png');
-    // Don't set blob.uploaded
 
-    handler.trackMedia(blob);
+    // Mock: blob exists
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(200, '', {
+        'x-amz-meta-width': '477',
+        'x-amz-meta-height': '268',
+      });
 
+    handler.clearUploadedImages();
+
+    const exists = await handler.checkBlobExists(blob);
+    assert.strictEqual(exists, true);
+
+    // Should be tracked as not uploaded (already existed)
     const uploadedImages = handler.getUploadedImages();
+    assert.strictEqual(uploadedImages.length, 1);
     assert.strictEqual(uploadedImages[0].uploaded, false);
   });
 
@@ -261,7 +283,6 @@ describe('MediaHandler', () => {
       contentType: 'image/png',
       width: '477',
       height: '268',
-      originalUri: 'https://www.example.com/cached_test_image.png',
       uploaded: false, // cached from previous session
     });
   });

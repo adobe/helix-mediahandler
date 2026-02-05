@@ -297,7 +297,8 @@ export default class MediaHandler {
 
   /**
    * Checks if the blob already exists using a HEAD request to the blob's metadata.
-   * On success, it also updates the metadata of the external resource.
+   * On success, it also updates the metadata of the external resource and tracks
+   * the blob as not uploaded (reused from storage).
    *
    * @param {MediaResource} blob - the resource object.
    * @returns {boolean} `true` if the resource exists.
@@ -310,6 +311,8 @@ export default class MediaHandler {
     // eslint-disable-next-line no-param-reassign
     blob.meta = meta;
     MediaHandler.updateBlobURI(blob);
+    // Track as existing (not uploaded in this session)
+    this._trackMedia(blob, false);
     return true;
   }
 
@@ -543,7 +546,7 @@ export default class MediaHandler {
     if (!this._noCache && sourceUri in this._cache) {
       const cachedBlob = this._cache[sourceUri];
       // track cached images too (from previous session), mark as not uploaded in this session
-      this.trackMedia(cachedBlob, sourceUri);
+      this._trackMedia(cachedBlob, false);
       return cachedBlob;
     }
     const blob = await this.transfer(sourceUri, src);
@@ -558,9 +561,7 @@ export default class MediaHandler {
       this._cache[sourceUri] = blob;
     }
 
-    // track uploaded images (use Map to deduplicate by hash)
-    this.trackMedia(blob, sourceUri);
-
+    // tracking is handled automatically by checkBlobExists/put
     return blob;
   }
 
@@ -582,15 +583,13 @@ export default class MediaHandler {
   }
 
   /**
-   * Tracks a media resource that was processed externally (e.g., from embedded binary data).
-   * This allows callers who use createMediaResource/checkBlobExists/upload directly
-   * to still have their media tracked for getUploadedImages().
-   *
+   * Internal method to track a media resource.
    * @param {MediaResource} blob - the resource object to track
-   * @param {string} [originalUri] - optional original source URI
-   *        (overrides blob.originalUri/meta.src)
+   * @param {boolean} uploaded - whether the blob was uploaded in this session
+   * @private
    */
-  trackMedia(blob, originalUri) {
+  _trackMedia(blob, uploaded) {
+    /* c8 ignore next 3 */
     if (!blob || !blob.hash) {
       return;
     }
@@ -601,8 +600,7 @@ export default class MediaHandler {
         contentType: blob.contentType,
         width: blob.meta?.width,
         height: blob.meta?.height,
-        originalUri: originalUri || blob.originalUri || blob.meta?.src,
-        uploaded: blob.uploaded ?? false,
+        uploaded,
       });
     }
   }
@@ -774,6 +772,8 @@ export default class MediaHandler {
       }
     }
     MediaHandler.updateBlobURI(blob);
+    // Track as newly uploaded
+    this._trackMedia(blob, true);
     return true;
   }
 
