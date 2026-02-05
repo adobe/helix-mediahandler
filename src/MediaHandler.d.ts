@@ -152,7 +152,6 @@ export declare interface TrackedImage {
   contentType: string;
   width?: string;
   height?: string;
-  originalUri: string;
   uploaded: boolean;
 }
 

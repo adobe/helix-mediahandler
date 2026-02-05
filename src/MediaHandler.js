@@ -297,7 +297,8 @@ export default class MediaHandler {
 
   /**
    * Checks if the blob already exists using a HEAD request to the blob's metadata.
-   * On success, it also updates the metadata of the external resource.
+   * On success, it also updates the metadata of the external resource and tracks
+   * the blob as not uploaded (reused from storage).
    *
    * @param {MediaResource} blob - the resource object.
    * @returns {boolean} `true` if the resource exists.
@@ -310,6 +311,8 @@ export default class MediaHandler {
     // eslint-disable-next-line no-param-reassign
     blob.meta = meta;
     MediaHandler.updateBlobURI(blob);
+    // Track as existing (not uploaded in this session)
+    this._trackMedia(blob, false);
     return true;
   }
 
@@ -543,17 +546,7 @@ export default class MediaHandler {
     if (!this._noCache && sourceUri in this._cache) {
       const cachedBlob = this._cache[sourceUri];
       // track cached images too (from previous session), mark as not uploaded in this session
-      if (!this._uploadedImages.has(cachedBlob.hash)) {
-        this._uploadedImages.set(cachedBlob.hash, {
-          uri: cachedBlob.uri,
-          hash: cachedBlob.hash,
-          contentType: cachedBlob.contentType,
-          width: cachedBlob.meta?.width,
-          height: cachedBlob.meta?.height,
-          originalUri: sourceUri,
-          uploaded: false, // cached from previous session, not uploaded now
-        });
-      }
+      this._trackMedia(cachedBlob, false);
       return cachedBlob;
     }
     const blob = await this.transfer(sourceUri, src);
@@ -568,19 +561,7 @@ export default class MediaHandler {
       this._cache[sourceUri] = blob;
     }
 
-    // track uploaded images (use Map to deduplicate by hash)
-    if (!this._uploadedImages.has(blob.hash)) {
-      this._uploadedImages.set(blob.hash, {
-        uri: blob.uri,
-        hash: blob.hash,
-        contentType: blob.contentType,
-        width: blob.meta?.width,
-        height: blob.meta?.height,
-        originalUri: sourceUri,
-        uploaded: blob.uploaded, // true = newly uploaded, false = reused from storage
-      });
-    }
-
+    // tracking is handled automatically by checkBlobExists/put
     return blob;
   }
 
@@ -599,6 +580,29 @@ export default class MediaHandler {
    */
   clearUploadedImages() {
     this._uploadedImages = new Map();
+  }
+
+  /**
+   * Internal method to track a media resource.
+   * @param {MediaResource} blob - the resource object to track
+   * @param {boolean} uploaded - whether the blob was uploaded in this session
+   * @private
+   */
+  _trackMedia(blob, uploaded) {
+    /* c8 ignore next 3 */
+    if (!blob || !blob.hash) {
+      return;
+    }
+    if (!this._uploadedImages.has(blob.hash)) {
+      this._uploadedImages.set(blob.hash, {
+        uri: blob.uri,
+        hash: blob.hash,
+        contentType: blob.contentType,
+        width: blob.meta?.width,
+        height: blob.meta?.height,
+        uploaded,
+      });
+    }
   }
 
   /**
@@ -768,6 +772,8 @@ export default class MediaHandler {
       }
     }
     MediaHandler.updateBlobURI(blob);
+    // Track as newly uploaded
+    this._trackMedia(blob, true);
     return true;
   }
 
