@@ -1,3 +1,11 @@
+## [2.10.1](https://github.com/adobe/helix-mediahandler/compare/v2.10.0...v2.10.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* create function to track embedded binaries in *2md services ([37e5886](https://github.com/adobe/helix-mediahandler/commit/37e5886f7c5a43d10023ca652c939e5717b30d61))
+* handle all tracking in mediahandler itself ([2e4ba73](https://github.com/adobe/helix-mediahandler/commit/2e4ba734ac537bfefd8876d42d734ec461bf55bd))
+
 # [2.10.0](https://github.com/adobe/helix-mediahandler/compare/v2.9.5...v2.10.0) (2026-02-04)
 
 
