@@ -259,6 +259,11 @@ export declare interface MediaHandlerOptions {
   blobAgent?: string,
 
   /**
+   * The user agent that is included in the requests to fetch the images
+   */
+  userAgent?: string,
+
+  /**
    * Authentication header for fetching sources.
    */
   auth?: string|AuthHeaderProvider,

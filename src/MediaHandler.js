@@ -96,6 +96,8 @@ export default class MediaHandler {
 
       _blobAgent: opts.blobAgent || `mediahandler-${pkgJson.version}`,
 
+      _userAgent: opts.userAgent || `adobe-mediahandler/${pkgJson.version}`,
+
       // tracking: map of uploaded images (keyed by hash to deduplicate)
       _uploadedImages: new Map(),
     });
@@ -369,6 +371,7 @@ export default class MediaHandler {
         range: 'bytes=0-8192',
         'accept-encoding': 'identity',
         accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8',
+        'user-agent': this._userAgent,
       },
       cache: 'no-store',
       signal: timeoutSignal(this._fetchTimeout),
@@ -622,7 +625,7 @@ export default class MediaHandler {
       blob.meta.src = src;
     }
     if (!this._filter(blob)) {
-      this._log.info(`filter rejected blob ${blob.uri}.`);
+      this._log.info(`filter rejected blob ${sourceUri} -> ${blob.uri}`);
       return null;
     }
 
@@ -796,6 +799,7 @@ export default class MediaHandler {
         // HTTP Error 501. The request transfer encoding type is not supported.
         'accept-encoding': 'identity',
         accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8',
+        'user-agent': this._userAgent,
       },
     };
     const auth = this._auth(new URL(blob.originalUri));
