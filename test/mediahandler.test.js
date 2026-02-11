@@ -305,19 +305,36 @@ describe('MediaHandler', () => {
   });
 
   it('uploads a test image to media-bus', async () => {
-    const handler = new MediaHandler(DEFAULT_OPTS);
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'test-agent',
+      userAgent: 'fetch-test-agent',
+    });
     const testImage = await fse.readFile(TEST_IMAGE);
     nock('https://www.example.com')
       .get('/test_image.png')
-      .reply(206, testImage.slice(0, 8192), {
-        'content-range': `bytes 0-8191/${testImage.length}`,
-        'content-length': 8192,
+      .reply(function cb() {
+        assert.deepEqual(this.req.headers, {
+          'accept-encoding': 'identity',
+          'user-agent': 'fetch-test-agent',
+          accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8',
+          host: 'www.example.com',
+          range: 'bytes=0-8192',
+        });
+        return [206, testImage.slice(0, 8192), {
+          'content-range': `bytes 0-8191/${testImage.length}`,
+          'content-length': 8192,
+        }];
       })
       .get('/test_image.png')
       // eslint-disable-next-line prefer-arrow-callback
       .reply(function cb() {
-        assert.strictEqual(this.req.headers.accept, 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8');
-        assert.strictEqual(this.req.headers['accept-encoding'], 'identity');
+        assert.deepEqual(this.req.headers, {
+          'accept-encoding': 'identity',
+          'user-agent': 'fetch-test-agent',
+          accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8',
+          host: 'www.example.com',
+        });
         return [200, testImage, {
           'content-length': testImage.length,
           'content-type': 'image/png',
@@ -329,7 +346,7 @@ describe('MediaHandler', () => {
       .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
       .reply(404)
       .putObject({
-        agent: `mediahandler-${version}`,
+        agent: 'test-agent',
         alg: '8k',
         width: '477',
         height: '268',
@@ -339,7 +356,7 @@ describe('MediaHandler', () => {
 
     nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
       .putObject({
-        agent: `mediahandler-${version}`,
+        agent: 'test-agent',
         alg: '8k',
         width: '477',
         height: '268',
@@ -355,7 +372,7 @@ describe('MediaHandler', () => {
       hash: '18bb2f0e55ff47be3fc32a575590b53e060b911f4',
       lastModified: '01-01-2021',
       meta: {
-        agent: `mediahandler-${version}`,
+        agent: 'test-agent',
         alg: '8k',
         'source-last-modified': '01-01-2021',
         src: 'https://www.example.com/test_image.png',
@@ -378,9 +395,18 @@ describe('MediaHandler', () => {
     const testImage = await fse.readFile(TEST_IMAGE);
     nock('https://www.example.com')
       .get('/test_image.png')
-      .reply(206, testImage.slice(0, 8192), {
-        'content-range': `bytes 0-8191/${testImage.length}`,
-        'content-length': 8192,
+      .reply(function cb() {
+        assert.deepEqual(this.req.headers, {
+          'accept-encoding': 'identity',
+          'user-agent': `adobe-mediahandler/${version}`,
+          accept: 'image/jpeg,image/jpg,image/png,image/gif,video/mp4,application/xml,image/x-icon,image/avif,image/webp,*/*;q=0.8',
+          host: 'www.example.com',
+          range: 'bytes=0-8192',
+        });
+        return [206, testImage.slice(0, 8192), {
+          'content-range': `bytes 0-8191/${testImage.length}`,
+          'content-length': 8192,
+        }];
       })
       .get('/test_image.png')
       // eslint-disable-next-line prefer-arrow-callback
