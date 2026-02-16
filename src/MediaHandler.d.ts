@@ -133,17 +133,15 @@ export declare interface MediaResource {
   meta?: MediaMeta,
 
   /**
-   * can be set by the MediaFilter if it detects that the blob doesn't have a `data`
-   * Buffer. It needs to return `true` and set `needsData` and will be called
-   * again when the `data` is available.
+   * internal field to remember content filter
    */
-  needsData: boolean,
+  contentFilter?: MediaFilter;
 }
 
 /**
- * Filter function for blobs.
+ * Filter function for blobs. Can be async.
  */
-declare type MediaFilter = (blob: MediaResource) => boolean;
+declare type MediaFilter = (blob: MediaResource) => boolean | MediaFilter;
 
 /**
  * Provide the auth header for the given url
@@ -245,7 +243,9 @@ export declare interface MediaHandlerOptions {
   maxTime?: number,
 
   /**
-   * Filter function to accept/reject blobs based on their HEAD request.
+   * Filter function to accept/reject blobs based on their header request. The filter can return
+   * another MediaFilter which will be invoked again before upload, when the media resource has
+   * a data buffer.
    */
   filter?: MediaFilter,
 

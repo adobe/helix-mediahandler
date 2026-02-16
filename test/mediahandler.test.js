@@ -986,29 +986,18 @@ describe('MediaHandler', () => {
     );
   });
 
-  it('content filter can request data', async () => {
+  it('filter can return content filter', async () => {
     const testImage = await fse.readFile(TEST_IMAGE);
 
-    let filterCount = 0;
+    const contentFilter = (blob) => {
+      assert.strictEqual(!!blob.data, true);
+      return false;
+    };
 
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
-      filter: (blob) => {
-        if (filterCount === 0) {
-          filterCount += 1;
-          assert.strictEqual(!!blob.data, false);
-          // eslint-disable-next-line no-param-reassign
-          blob.needsData = true;
-          return true;
-        } else if (filterCount === 1) {
-          filterCount += 1;
-          assert.strictEqual(!!blob.data, true);
-          return false;
-        }
-        assert.fail('filter should only be called twice.');
-        return false;
-      },
+      filter: () => contentFilter,
     });
 
     nock('https://www.example.com')
@@ -1034,26 +1023,14 @@ describe('MediaHandler', () => {
   it('content filter can throw exception after receiving data', async () => {
     const testImage = await fse.readFile(TEST_IMAGE);
 
-    let filterCount = 0;
+    const contentFilter = () => {
+      throw new Error('kaputt');
+    };
 
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
-      filter: (blob) => {
-        if (filterCount === 0) {
-          filterCount += 1;
-          assert.strictEqual(!!blob.data, false);
-          // eslint-disable-next-line no-param-reassign
-          blob.needsData = true;
-          return true;
-        } else if (filterCount === 1) {
-          filterCount += 1;
-          assert.strictEqual(!!blob.data, true);
-          throw new Error('kaputt');
-        }
-        assert.fail('filter should only be called twice.');
-        return false;
-      },
+      filter: () => contentFilter,
     });
 
     nock('https://www.example.com')
@@ -1078,19 +1055,12 @@ describe('MediaHandler', () => {
   it('content filter can throw exception early', async () => {
     const testImage = await fse.readFile(TEST_SMALL_IMAGE);
 
-    let filterCount = 0;
-
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
       filter: (blob) => {
-        if (filterCount === 0) {
-          filterCount += 1;
-          assert.strictEqual(!!blob.data, true);
-          throw new Error('kaputt');
-        }
-        assert.fail('filter should only be called once.');
-        return false;
+        assert.strictEqual(!!blob.data, true);
+        throw new Error('kaputt');
       },
     });
 
