@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/adobe/helix-mediahandler/compare/v2.10.1...v2.11.0) (2026-02-16)
+
+
+### Features
+
+* add content filter ([#393](https://github.com/adobe/helix-mediahandler/issues/393)) ([bacd538](https://github.com/adobe/helix-mediahandler/commit/bacd5382bede3811d0f6f57bb3b2723549d32bb9))
+
 ## [2.10.1](https://github.com/adobe/helix-mediahandler/compare/v2.10.0...v2.10.1) (2026-02-05)
 
 
