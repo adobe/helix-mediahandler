@@ -276,7 +276,7 @@ export default class MediaHandler {
    * Fetches the metadata from the media bus for the given resource
    *
    * @param {MediaResource} blob - the resource object.
-   * @returns {BlobMeta} the blob metadata
+   * @returns {Promise<BlobMeta>} the blob metadata
    */
   async fetchMetadata(blob) {
     const { log } = this;
@@ -301,7 +301,7 @@ export default class MediaHandler {
    * the blob as not uploaded (reused from storage).
    *
    * @param {MediaResource} blob - the resource object.
-   * @returns {boolean} `true` if the resource exists.
+   * @returns {Promise<boolean>} `true` if the resource exists.
    */
   async checkBlobExists(blob) {
     const meta = await this.fetchMetadata(blob);
@@ -622,14 +622,16 @@ export default class MediaHandler {
       blob.meta.src = src;
     }
     if (!this._filter(blob)) {
-      this._log.info(`filter rejected blob ${blob.uri}.`);
+      this._log.info(`filter rejected blob ${sourceUri} -> ${blob.uri}.`);
       return null;
     }
 
     // check if already exists
     const exist = await this.checkBlobExists(blob);
     if (!exist) {
-      await this.upload(blob);
+      if (!await this.upload(blob)) {
+        return null;
+      }
       blob.uploaded = true;
     } else {
       blob.uploaded = false;
@@ -642,13 +644,15 @@ export default class MediaHandler {
    * the source uri. otherwise the blob is uploaded directly.
    *
    * @param {MediaResource} blob The resource to transfer.
-   * @returns {boolean} {@code true} if successful.
+   * @returns {Promise<boolean>} {@code true} if successful.
    */
   async upload(blob) {
-    if (blob.stream || (blob.data && blob.data.length === blob.contentLength)) {
-      return this.put(blob);
+    const contentLengthMismatch = blob.data && blob.data.length !== blob.contentLength;
+    const forcedData = !blob.data && blob.needsData;
+    if (contentLengthMismatch || forcedData || !blob.stream) {
+      return this.spool(blob);
     }
-    return this.spool(blob);
+    return this.put(blob);
   }
 
   /**
@@ -659,6 +663,11 @@ export default class MediaHandler {
   async put(blob) {
     const { log } = this;
     const c = requestCounter++;
+
+    if (blob.needsData && blob.data && !this._filter(blob)) {
+      this._log.info(`content filter rejected blob ${blob.originalUri} -> ${blob.uri}.`);
+      return false;
+    }
 
     if (blob.originalUri) {
       log.info(`[${c}] Upload ${blob.originalUri} -> ${blob.uri}`);
@@ -814,7 +823,10 @@ export default class MediaHandler {
 
     // the s3 multipart uploader has a default min size of 5mb, so download smaller images when
     // dimensions are missing
-    if (!blob.meta.width && blob.contentLength < this._uploadBufferSize) {
+    const detectWidth = !blob.meta.width && blob.contentLength < this._uploadBufferSize;
+    const forcedData = !blob.data && blob.needsData;
+
+    if (detectWidth || forcedData) {
       blob.data = await source.buffer();
     } else {
       blob.stream = source.body;

@@ -21,10 +21,12 @@ import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
 import { Nock } from './utils.js';
 import { SizeTooLargeException } from '../src/index.js';
+import {blob} from "node:stream/consumers";
 
 const { version } = pkgJson;
 
 const TEST_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_image.png');
+const TEST_SVG = path.resolve(__rootdir, 'test', 'fixtures', 'xss.svg');
 const TEST_SMALL_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_small_image.png');
 const TEST_IMAGE_URI = 'https://www.example.com/test_image.png';
 
@@ -984,6 +986,124 @@ describe('MediaHandler', () => {
       handler.getBlob('https://www.example.com/large_image.png'),
       (err) => err instanceof SizeTooLargeException && err.message.includes('Resource size exceeds allowed limit'),
     );
+  });
+
+  it('content filter can request data', async () => {
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    let filterCount = 0;
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      filter: (blob) => {
+        if (filterCount === 0) {
+          filterCount += 1;
+          assert.strictEqual(!!blob.data, false);
+          blob.needsData = true;
+          return true;
+        } else if (filterCount === 1) {
+          filterCount += 1;
+          assert.strictEqual(!!blob.data, true);
+          return false;
+        } else {
+          assert.fail('filter should only be called twice.')
+        }
+      }
+    });
+
+    nock('https://www.example.com')
+      .get('/test.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      })
+      .get('/test.png')
+      .reply(200, testImage, {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+      });
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404)
+
+
+    const blob = await handler.getBlob('https://www.example.com/test.png');
+    assert.strictEqual(blob, null);
+  });
+
+  it('content filter can throw exception after receiving data', async () => {
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    let filterCount = 0;
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      filter: (blob) => {
+        if (filterCount === 0) {
+          filterCount += 1;
+          assert.strictEqual(!!blob.data, false);
+          blob.needsData = true;
+          return true;
+        } else if (filterCount === 1) {
+          filterCount += 1;
+          assert.strictEqual(!!blob.data, true);
+          throw new Error('kaputt');
+        } else {
+          assert.fail('filter should only be called twice.')
+        }
+      }
+    });
+
+    nock('https://www.example.com')
+      .get('/test.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      })
+      .get('/test.png')
+      .reply(200, testImage, {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+      });
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404);
+
+
+    await assert.rejects(handler.getBlob('https://www.example.com/test.png'), new Error('kaputt'));
+  });
+
+  it('content filter can throw exception early', async () => {
+    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+
+    let filterCount = 0;
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      filter: (blob) => {
+        if (filterCount === 0) {
+          filterCount += 1;
+          assert.strictEqual(!!blob.data, true);
+          throw new Error('kaputt');
+        } else if (filterCount === 1) {
+          assert.fail('filter should only be called once.')
+        }
+      }
+    });
+
+    nock('https://www.example.com')
+      .get('/test.png')
+      .reply(200, testImage.slice(0, 8192), {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+      });
+
+    await assert.rejects(handler.getBlob('https://www.example.com/test.png'), new Error('kaputt'));
   });
 
   it('can upload a small external resource from stream with S3 failing', async () => {

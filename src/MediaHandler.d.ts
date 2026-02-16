@@ -131,6 +131,13 @@ export declare interface MediaResource {
    * Metadata read via the `x-ms-meta-name` header.
    */
   meta?: MediaMeta,
+
+  /**
+   * can be set by the MediaFilter if it detects that the blob doesn't have a `data`
+   * Buffer. It needs to return `true` and set `needsData` and will be called
+   * again when the `data` is available.
+   */
+  needsData: boolean,
 }
 
 /**
@@ -261,7 +268,7 @@ export declare interface MediaHandlerOptions {
   /**
    * Authentication header for fetching sources.
    */
-  auth?: string|AuthHeaderProvider,
+  auth?: string | AuthHeaderProvider,
 
   /**
    * Size of the upload buffer to calculate image size if missing.
@@ -306,9 +313,9 @@ export declare class MediaHandler {
    * @param {string} [sourceUri] - source uri
    * @returns {Promise<MediaResource>} the external resource object.
    */
-  createMediaResourceFromStream(stream: stream.Readable, contentLength: number, contentType?:string, sourceUri?: string): Promise<MediaResource>;
+  createMediaResourceFromStream(stream: stream.Readable, contentLength: number, contentType?: string, sourceUri?: string): Promise<MediaResource>;
 
-    /**
+  /**
    * Checks if the blob already exists using a GET request to the blob's metadata.
    * On success, it also updates the metadata of the external resource.
    *
