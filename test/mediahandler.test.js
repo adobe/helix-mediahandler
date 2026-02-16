@@ -986,6 +986,76 @@ describe('MediaHandler', () => {
     );
   });
 
+  it('filter can return content filter if data is missing', async () => {
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    const contentFilter = (blob) => {
+      assert.strictEqual(!!blob.data, true);
+      return false;
+    };
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      filter: (blob) => {
+        assert.strictEqual(blob.data, undefined);
+        return contentFilter;
+      },
+    });
+
+    nock('https://www.example.com')
+      .get('/test.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      })
+      .get('/test.png')
+      .reply(200, testImage, {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+      });
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404);
+
+    const blob = await handler.getBlob('https://www.example.com/test.png');
+    assert.strictEqual(blob, null);
+  });
+
+  it('content filter can throw exception after receiving data', async () => {
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    const contentFilter = (blob) => {
+      assert.strictEqual(!!blob.data, true);
+      throw new Error('kaputt');
+    };
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      filter: () => contentFilter,
+    });
+
+    nock('https://www.example.com')
+      .get('/test.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'image/png',
+      })
+      .get('/test.png')
+      .reply(200, testImage, {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+      });
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404);
+
+    await assert.rejects(handler.getBlob('https://www.example.com/test.png'), new Error('kaputt'));
+  });
+
   it('can upload a small external resource from stream with S3 failing', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
@@ -1145,6 +1215,27 @@ describe('MediaHandler', () => {
 
     const blob = await handler.getBlob('https://embed.spotify.com/?uri=spotify:artist:4gzpq5DPGxSnKTe4SA8HAU');
     assert.strictEqual(blob, null);
+  });
+
+  it('filter can throw exception', async () => {
+    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      blobAgent: 'blob-test',
+      filter: () => {
+        throw new Error('kaputt');
+      },
+    });
+
+    nock('https://www.example.com')
+      .get('/test.png')
+      .reply(200, testImage.slice(0, 8192), {
+        'content-length': testImage.length,
+        'content-type': 'image/png',
+      });
+
+    await assert.rejects(handler.getBlob('https://www.example.com/test.png'), new Error('kaputt'));
   });
 
   it('uploads a test image to media bus using name prefix', async () => {

@@ -131,12 +131,17 @@ export declare interface MediaResource {
    * Metadata read via the `x-ms-meta-name` header.
    */
   meta?: MediaMeta,
+
+  /**
+   * internal field to remember content filter
+   */
+  contentFilter?: MediaFilter;
 }
 
 /**
- * Filter function for blobs.
+ * Filter function for blobs. Can be async.
  */
-declare type MediaFilter = (blob: MediaResource) => boolean;
+declare type MediaFilter = (blob: MediaResource) => boolean | MediaFilter;
 
 /**
  * Provide the auth header for the given url
@@ -238,7 +243,9 @@ export declare interface MediaHandlerOptions {
   maxTime?: number,
 
   /**
-   * Filter function to accept/reject blobs based on their HEAD request.
+   * Filter function to accept/reject blobs based on their header request. The filter can return
+   * another MediaFilter which will be invoked again before upload, when the media resource has
+   * a data buffer.
    */
   filter?: MediaFilter,
 
@@ -261,7 +268,7 @@ export declare interface MediaHandlerOptions {
   /**
    * Authentication header for fetching sources.
    */
-  auth?: string|AuthHeaderProvider,
+  auth?: string | AuthHeaderProvider,
 
   /**
    * Size of the upload buffer to calculate image size if missing.
@@ -306,9 +313,9 @@ export declare class MediaHandler {
    * @param {string} [sourceUri] - source uri
    * @returns {Promise<MediaResource>} the external resource object.
    */
-  createMediaResourceFromStream(stream: stream.Readable, contentLength: number, contentType?:string, sourceUri?: string): Promise<MediaResource>;
+  createMediaResourceFromStream(stream: stream.Readable, contentLength: number, contentType?: string, sourceUri?: string): Promise<MediaResource>;
 
-    /**
+  /**
    * Checks if the blob already exists using a GET request to the blob's metadata.
    * On success, it also updates the metadata of the external resource.
    *
