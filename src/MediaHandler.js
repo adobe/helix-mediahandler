@@ -649,7 +649,8 @@ export default class MediaHandler {
   async upload(blob) {
     const contentLengthMismatch = blob.data && blob.data.length !== blob.contentLength;
     const forcedData = !blob.data && blob.needsData;
-    if (contentLengthMismatch || forcedData || !blob.stream) {
+    const needsSource = !blob.data && !blob.stream;
+    if (contentLengthMismatch || forcedData || needsSource) {
       return this.spool(blob);
     }
     return this.put(blob);
