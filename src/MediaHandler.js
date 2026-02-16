@@ -829,7 +829,7 @@ export default class MediaHandler {
     // the s3 multipart uploader has a default min size of 5mb, so download smaller images when
     // dimensions are missing
     const detectWidth = !blob.meta.width && blob.contentLength < this._uploadBufferSize;
-    const forcedData = !blob.data && blob.needsData;
+    const forcedData = !blob.data && blob.contentFilter;
 
     if (detectWidth || forcedData) {
       blob.data = await source.buffer();
