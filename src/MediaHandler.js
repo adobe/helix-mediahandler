@@ -669,7 +669,7 @@ export default class MediaHandler {
     const { log } = this;
     const c = requestCounter++;
 
-    if (blob.contentFilter && !(await blob.contentFilter(blob))) {
+    if (await blob.contentFilter?.(blob) === false) {
       this._log.info(`content filter rejected blob ${blob.originalUri} -> ${blob.uri}.`);
       return false;
     }
