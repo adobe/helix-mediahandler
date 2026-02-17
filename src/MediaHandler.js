@@ -182,12 +182,12 @@ export default class MediaHandler {
     }
 
     // compute hash
-    const resource = this._initMediaResource(buffer, contentLength);
+    const resource = this.#initMediaResource(buffer, contentLength);
 
     // try to detect dimensions
-    const { type, ...dims } = this._getDimensions(buffer, '');
+    const { type, ...dims } = this.#getDimensions(buffer, '');
 
-    return MediaHandler.updateBlobURI({
+    return MediaHandler.#updateBlobURI({
       sourceUri,
       data: buffer.length === contentLength ? buffer : null,
       contentType: MediaHandler.getContentType(type, contentType, sourceUri),
@@ -253,12 +253,12 @@ export default class MediaHandler {
     });
 
     // compute hash
-    const resource = this._initMediaResource(partialBuffer, contentLength);
+    const resource = this.#initMediaResource(partialBuffer, contentLength);
 
     // try to detect dimensions
-    const { type, ...dims } = this._getDimensions(partialBuffer, '');
+    const { type, ...dims } = this.#getDimensions(partialBuffer, '');
 
-    return MediaHandler.updateBlobURI({
+    return MediaHandler.#updateBlobURI({
       sourceUri,
       stream,
       contentType: MediaHandler.getContentType(type, contentType, sourceUri),
@@ -278,7 +278,7 @@ export default class MediaHandler {
    * @param {MediaResource} blob - the resource object.
    * @returns {Promise<BlobMeta>} the blob metadata
    */
-  async fetchMetadata(blob) {
+  async #fetchMetadata(blob) {
     const { log } = this;
     const c = requestCounter++;
     try {
@@ -304,15 +304,15 @@ export default class MediaHandler {
    * @returns {Promise<boolean>} `true` if the resource exists.
    */
   async checkBlobExists(blob) {
-    const meta = await this.fetchMetadata(blob);
+    const meta = await this.#fetchMetadata(blob);
     if (!meta) {
       return false;
     }
     // eslint-disable-next-line no-param-reassign
     blob.meta = meta;
-    MediaHandler.updateBlobURI(blob);
+    MediaHandler.#updateBlobURI(blob);
     // Track as existing (not uploaded in this session)
-    this._trackMedia(blob, false);
+    this.#trackMedia(blob, false);
     return true;
   }
 
@@ -323,7 +323,7 @@ export default class MediaHandler {
    * @returns {{}|{width: string, height: string}}
    * @private
    */
-  _getDimensions(data, c) {
+  #getDimensions(data, c) {
     if (!data) {
       return {};
     }
@@ -437,7 +437,7 @@ export default class MediaHandler {
     }
 
     // try to detect dimensions
-    const { type, ...dims } = this._getDimensions(data, c);
+    const { type, ...dims } = this.#getDimensions(data, c);
 
     // compute the content type
     let contentType = res.headers.get('content-type');
@@ -446,8 +446,8 @@ export default class MediaHandler {
     }
 
     // compute hashes
-    const hashInfo = this._initMediaResource(body, contentLength);
-    return MediaHandler.updateBlobURI({
+    const hashInfo = this.#initMediaResource(body, contentLength);
+    return MediaHandler.#updateBlobURI({
       originalUri: res.url,
       data,
       contentType,
@@ -469,7 +469,7 @@ export default class MediaHandler {
    * @returns {MediaResource} media resource
    * @private
    */
-  _initMediaResource(buffer, contentLength) {
+  #initMediaResource(buffer, contentLength) {
     if (contentLength > this._maxSize && this._maxSize > 0) {
       throw new SizeTooLargeException(`Resource size exceeds allowed limit: ${contentLength} > ${this._maxSize}`, contentLength, this._maxSize);
     }
@@ -485,7 +485,7 @@ export default class MediaHandler {
     const hash = `1${contentHash}`;
     const storageKey = `${this._contentBusId}/${this._namePrefix}${hash}`;
 
-    return MediaHandler.updateBlobURI({
+    return MediaHandler.#updateBlobURI({
       storageUri: `s3://${this._bucketId}/${storageKey}`,
       storageKey,
       owner: this._owner,
@@ -524,7 +524,7 @@ export default class MediaHandler {
     const rejected = result.filter(({ status }) => status === 'rejected');
     if (!rejected.length) {
       log.info(`[${c}] Metadata updated for: ${blob.storageUri}`);
-      MediaHandler.updateBlobURI(blob);
+      MediaHandler.#updateBlobURI(blob);
     } else {
       // at least 1 cmd failed
       const type = result[0].status === 'rejected' ? 'S3' : 'R2';
@@ -546,10 +546,10 @@ export default class MediaHandler {
     if (!this._noCache && sourceUri in this._cache) {
       const cachedBlob = this._cache[sourceUri];
       // track cached images too (from previous session), mark as not uploaded in this session
-      this._trackMedia(cachedBlob, false);
+      this.#trackMedia(cachedBlob, false);
       return cachedBlob;
     }
-    const blob = await this.transfer(sourceUri, src);
+    const blob = await this.#transfer(sourceUri, src);
     if (!blob) {
       return null;
     }
@@ -588,7 +588,7 @@ export default class MediaHandler {
    * @param {boolean} uploaded - whether the blob was uploaded in this session
    * @private
    */
-  _trackMedia(blob, uploaded) {
+  #trackMedia(blob, uploaded) {
     /* c8 ignore next 3 */
     if (!blob || !blob.hash) {
       return;
@@ -613,7 +613,7 @@ export default class MediaHandler {
    * @returns {MediaResource} the external resource object or {@code null} if the source
    *          does not exist.
    */
-  async transfer(sourceUri, src) {
+  async #transfer(sourceUri, src) {
     const blob = await this.fetchHeader(sourceUri);
     if (!blob) {
       return null;
@@ -655,9 +655,9 @@ export default class MediaHandler {
     const forcedData = !blob.data && blob.contentFilter;
     const needsSource = !blob.data && !blob.stream;
     if (contentLengthMismatch || forcedData || needsSource) {
-      return this.spool(blob);
+      return this.#spool(blob);
     }
-    return this.put(blob);
+    return this.#put(blob);
   }
 
   /**
@@ -665,7 +665,7 @@ export default class MediaHandler {
    * @param {MediaResource} blob - the resource object.
    * @returns {Promise<boolean>} `true` if the upload succeeded.
    */
-  async put(blob) {
+  async #put(blob) {
     const { log } = this;
     const c = requestCounter++;
 
@@ -685,7 +685,7 @@ export default class MediaHandler {
     const buffers = [];
     if (!blob.meta.width) {
       if (blob.data) {
-        const { width, height, duration } = this._getDimensions(blob.data, c);
+        const { width, height, duration } = this.#getDimensions(blob.data, c);
         if (width) {
           blob.meta.width = width;
           blob.meta.height = height;
@@ -778,16 +778,16 @@ export default class MediaHandler {
 
     // check if we need to update the metadata with the dimensions
     if (buffers.length) {
-      const { width, height } = this._getDimensions(Buffer.concat(buffers), c);
+      const { width, height } = this.#getDimensions(Buffer.concat(buffers), c);
       if (width) {
         blob.meta.width = width;
         blob.meta.height = height;
         await this.putMetaData(blob);
       }
     }
-    MediaHandler.updateBlobURI(blob);
+    MediaHandler.#updateBlobURI(blob);
     // Track as newly uploaded
-    this._trackMedia(blob, true);
+    this.#trackMedia(blob, true);
     return true;
   }
 
@@ -797,7 +797,7 @@ export default class MediaHandler {
    * @param {MediaResource} blob The resource to transfer.
    * @returns {boolean} {@code true} if successful.
    */
-  async spool(blob) {
+  async #spool(blob) {
     const { log } = this;
     const c = requestCounter++;
     log.info(`[${c}] Download ${blob.originalUri} -> ${blob.storageUri}`);
@@ -851,7 +851,7 @@ export default class MediaHandler {
       ...blob.meta,
       ...metaData,
     };
-    return this.put(blob);
+    return this.#put(blob);
   }
 
   /**
@@ -860,7 +860,7 @@ export default class MediaHandler {
    * @param {MediaResource} blob The resource to update.
    * @return {MediaResource} the resource.
    */
-  static updateBlobURI(blob) {
+  static #updateBlobURI(blob) {
     const {
       owner,
       repo,

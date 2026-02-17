@@ -867,7 +867,7 @@ describe('MediaHandler', () => {
         height: '268',
       });
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can upload an external resource from stream', async () => {
@@ -920,7 +920,7 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can upload a small external resource from stream', async () => {
@@ -949,7 +949,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('rejects resource that exceeds the allowed size limit', async () => {
@@ -1078,7 +1078,7 @@ describe('MediaHandler', () => {
         src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), false);
+    assert.strictEqual(await handler.upload(blob), false);
   });
 
   it('can upload a small external resource from stream with R2 failing', async () => {
@@ -1103,7 +1103,7 @@ describe('MediaHandler', () => {
       .times(3)
       .reply(500, 'that went wrong');
 
-    assert.strictEqual(await handler.put(blob), false);
+    assert.strictEqual(await handler.upload(blob), false);
   });
 
   it('can upload a blob from a small image', async () => {
@@ -1154,7 +1154,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can disable R2 via env (HELIX_MEDIA_HANDLER_DISABLE_R2)', async () => {
@@ -1176,7 +1176,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can disable R2 via env (HELIX_STORAGE_DISABLE_R2)', async () => {
@@ -1198,7 +1198,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('filter rejects blob', async () => {
@@ -1494,7 +1494,7 @@ describe('MediaHandler', () => {
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1538,7 +1538,7 @@ describe('MediaHandler', () => {
         })];
       });
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1592,7 +1592,7 @@ describe('MediaHandler', () => {
         })];
       });
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1646,7 +1646,7 @@ describe('MediaHandler', () => {
       .times(3)
       .reply(500, 'that went wrong');
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1684,7 +1684,7 @@ describe('MediaHandler', () => {
       .get('/test_image.png')
       .reply(404, 'nope, not here');
 
-    assert.strictEqual(false, await handler.spool({ originalUri: TEST_IMAGE_URI }));
+    assert.strictEqual(false, await handler.upload({ originalUri: TEST_IMAGE_URI }));
   });
 
   it('sanitizes content type', () => {
