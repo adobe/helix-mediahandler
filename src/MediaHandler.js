@@ -600,6 +600,7 @@ export default class MediaHandler {
         contentType: blob.contentType,
         width: blob.meta?.width,
         height: blob.meta?.height,
+        originalUri: blob.originalUri,
         uploaded,
       });
     }
