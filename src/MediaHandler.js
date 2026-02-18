@@ -617,15 +617,6 @@ export default class MediaHandler {
     if (src) {
       blob.meta.src = src;
     }
-    const filterResult = await this._filter(blob);
-    if (!filterResult) {
-      this._log.info(`filter rejected blob ${sourceUri} -> ${blob.uri}.`);
-      return null;
-    }
-    if (typeof filterResult === 'function') {
-      blob.contentFilter = filterResult;
-    }
-
     // check if already exists
     const exist = await this.checkBlobExists(blob);
     if (!exist) {
@@ -647,6 +638,15 @@ export default class MediaHandler {
    * @returns {Promise<boolean>} {@code true} if successful.
    */
   async upload(blob) {
+    const filterResult = await this._filter(blob);
+    if (!filterResult) {
+      this._log.info(`filter rejected blob ${blob.originalUri} -> ${blob.uri}.`);
+      return null;
+    }
+    if (typeof filterResult === 'function') {
+      blob.contentFilter = filterResult;
+    }
+
     const contentLengthMismatch = blob.data && blob.data.length !== blob.contentLength;
     const forcedData = !blob.data && blob.contentFilter;
     const needsSource = !blob.data && !blob.stream;

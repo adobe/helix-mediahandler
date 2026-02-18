@@ -970,6 +970,10 @@ describe('MediaHandler', () => {
       filter: maxSizeMediaFilter(256), // image is ~60KB, so this should reject
     });
 
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404);
+
     nock('https://www.example.com')
       .get('/large_image.png')
       .reply(206, testImage.slice(0, 8192), {
@@ -1205,6 +1209,10 @@ describe('MediaHandler', () => {
       filter: (blob) => (blob.contentType.startsWith('image/')),
     });
 
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/13fa0fadacc274ce164322576cf043a25379d00f7')
+      .reply(404);
+
     nock('https://embed.spotify.com')
       .get('/?uri=spotify:artist:4gzpq5DPGxSnKTe4SA8HAU')
       .reply(200, 'foo', {
@@ -1225,6 +1233,9 @@ describe('MediaHandler', () => {
         throw new Error('kaputt');
       },
     });
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .reply(404);
 
     nock('https://www.example.com')
       .get('/test.png')
