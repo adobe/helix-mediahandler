@@ -20,7 +20,7 @@ import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
 import { Nock } from './utils.js';
-import { SizeTooLargeException } from '../src/index.js';
+import { maxSizeMediaFilter, SizeTooLargeException } from '../src/index.js';
 
 const { version } = pkgJson;
 
@@ -952,24 +952,22 @@ describe('MediaHandler', () => {
     assert.strictEqual(await handler.upload(blob), true);
   });
 
-  it('rejects resource that exceeds the allowed size limit', async () => {
-    const handler = new MediaHandler({
+  it('rejects deprecated maxSize option', async () => {
+    const create = async () => new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
       maxSize: 256,
     });
-
-    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
-    await assert.rejects(handler.createMediaResourceFromStream(testStream, 613, 'image/png'), new SizeTooLargeException('Resource size exceeds allowed limit: 613 > 256', 613, 256));
+    await assert.rejects(create, Error('maxSize is no longer supported. use a maxSizeMediaFilter instead.'));
   });
 
-  it('rejects resource that exceeds the allowed size limit via getBlob', async () => {
+  it('rejects resource that exceeds the allowed size limit via getBlob (filter)', async () => {
     const testImage = await fse.readFile(TEST_IMAGE);
 
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
-      maxSize: 256, // image is ~60KB, so this should reject
+      filter: maxSizeMediaFilter(256), // image is ~60KB, so this should reject
     });
 
     nock('https://www.example.com')

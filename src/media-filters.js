@@ -22,12 +22,10 @@ import { SizeTooLargeException } from './SizeTooLargeException.js';
 export function maxSizeMediaFilter(maxSize, ignored = false) {
   return (blob) => {
     if (blob.contentLength > maxSize) {
-      const msg = `Resource size exceeds allowed limit: ${blob.contentLength} > ${maxSize}`;
       if (ignored) {
-        this.log.warn(msg);
         return false;
       }
-      throw new SizeTooLargeException(msg, blob.contentLength, maxSize);
+      throw new SizeTooLargeException(`Resource size exceeds allowed limit: ${blob.contentLength} > ${maxSize}`, blob.contentLength, maxSize);
     }
     return true;
   };
@@ -35,14 +33,14 @@ export function maxSizeMediaFilter(maxSize, ignored = false) {
 
 /**
  * Helper filter that evaluates several filters in sequence.
- * @param {MediaFilter[]} filters
+ * @param {...MediaFilter} filters
  * @return {MediaFilter}
  */
 export function chainedMediaFilter(...filters) {
   return async (blob) => {
     for (const filter of filters) {
       // eslint-disable-next-line no-await-in-loop
-      if (!await filter.call(this, [blob])) {
+      if (!await filter(blob)) {
         return false;
       }
     }
@@ -56,5 +54,5 @@ export function chainedMediaFilter(...filters) {
  * @return {MediaFilter}
  */
 export function contentTypeMediaFilter(prefix) {
-  return (blob) => typeof blob.contentType === 'string' && blob.contentType.startsWith(prefix);
+  return (blob) => (blob.contentType || '').startsWith(prefix);
 }

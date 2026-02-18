@@ -24,7 +24,6 @@ import sizeOf from 'image-size';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Parser } from './mp4/Parser.js';
 import pkgJson from './package.cjs';
-import { SizeTooLargeException } from './SizeTooLargeException.js';
 
 // cache external urls
 const blobCache = {};
@@ -79,9 +78,6 @@ export default class MediaHandler {
       // maximum time allowed (the default timeout we allow in pipeline is 20s. be conservative)
       _maxTime: opts.maxTime || 10 * 1000,
 
-      // maximum allowed media size. 0 means unlimited (which is the default).
-      _maxSize: opts.maxSize || 0,
-
       // list of uploads (scheduled and completed)
       _uploads: [],
 
@@ -102,6 +98,9 @@ export default class MediaHandler {
 
     if (!this._owner || !this._repo || !this._ref || !this._contentBusId) {
       throw Error('owner, repo, ref, and contentBusId are mandatory parameters.');
+    }
+    if (opts.maxSize) {
+      throw Error('maxSize is no longer supported. use a maxSizeMediaFilter instead.');
     }
 
     this._cache = blobCache[this._contentBusId];
@@ -470,9 +469,6 @@ export default class MediaHandler {
    * @private
    */
   #initMediaResource(buffer, contentLength) {
-    if (contentLength > this._maxSize && this._maxSize > 0) {
-      throw new SizeTooLargeException(`Resource size exceeds allowed limit: ${contentLength} > ${this._maxSize}`, contentLength, this._maxSize);
-    }
     // compute hashes
     let hashBuffer = buffer;
     if (hashBuffer.length > 8192) {
