@@ -1,3 +1,19 @@
+# [3.0.0](https://github.com/adobe/helix-mediahandler/compare/v2.11.0...v3.0.0) (2026-02-19)
+
+
+### Features
+
+* replace maxSize check with filter ([1770e7b](https://github.com/adobe/helix-mediahandler/commit/1770e7bb4b7b0a8a7759f5f3b3d47b82803701f1))
+
+
+### BREAKING CHANGES
+
+* options.maxSize no longer suppoted
+
+- the options.maxSize is no longer supported. use the maxSizeMediaFilter instead.
+- methods that are internal are now private.
+- the filters are checked before upload. i.e. the maxSize check is no longer done when creating the media resource
+
 # [2.11.0](https://github.com/adobe/helix-mediahandler/compare/v2.10.1...v2.11.0) (2026-02-16)
 
 
