@@ -20,7 +20,7 @@ import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
 import { Nock } from './utils.js';
-import { SizeTooLargeException } from '../src/index.js';
+import { maxSizeMediaFilter, SizeTooLargeException } from '../src/index.js';
 
 const { version } = pkgJson;
 
@@ -867,7 +867,7 @@ describe('MediaHandler', () => {
         height: '268',
       });
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can upload an external resource from stream', async () => {
@@ -920,7 +920,7 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can upload a small external resource from stream', async () => {
@@ -949,28 +949,30 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
-  it('rejects resource that exceeds the allowed size limit', async () => {
-    const handler = new MediaHandler({
+  it('rejects deprecated maxSize option', async () => {
+    const create = async () => new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
       maxSize: 256,
     });
-
-    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
-    await assert.rejects(handler.createMediaResourceFromStream(testStream, 613, 'image/png'), new SizeTooLargeException('Resource size exceeds allowed limit: 613 > 256', 613, 256));
+    await assert.rejects(create, Error('maxSize is no longer supported. use a maxSizeMediaFilter instead.'));
   });
 
-  it('rejects resource that exceeds the allowed size limit via getBlob', async () => {
+  it('rejects resource that exceeds the allowed size limit via getBlob (filter)', async () => {
     const testImage = await fse.readFile(TEST_IMAGE);
 
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
-      maxSize: 256, // image is ~60KB, so this should reject
+      filter: maxSizeMediaFilter(256), // image is ~60KB, so this should reject
     });
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/18bb2f0e55ff47be3fc32a575590b53e060b911f4')
+      .reply(404);
 
     nock('https://www.example.com')
       .get('/large_image.png')
@@ -1078,7 +1080,7 @@ describe('MediaHandler', () => {
         src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), false);
+    assert.strictEqual(await handler.upload(blob), false);
   });
 
   it('can upload a small external resource from stream with R2 failing', async () => {
@@ -1103,7 +1105,7 @@ describe('MediaHandler', () => {
       .times(3)
       .reply(500, 'that went wrong');
 
-    assert.strictEqual(await handler.put(blob), false);
+    assert.strictEqual(await handler.upload(blob), false);
   });
 
   it('can upload a blob from a small image', async () => {
@@ -1154,7 +1156,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can disable R2 via env (HELIX_MEDIA_HANDLER_DISABLE_R2)', async () => {
@@ -1176,7 +1178,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('can disable R2 via env (HELIX_STORAGE_DISABLE_R2)', async () => {
@@ -1198,7 +1200,7 @@ describe('MediaHandler', () => {
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
 
-    assert.strictEqual(await handler.put(blob), true);
+    assert.strictEqual(await handler.upload(blob), true);
   });
 
   it('filter rejects blob', async () => {
@@ -1206,6 +1208,10 @@ describe('MediaHandler', () => {
       ...DEFAULT_OPTS,
       filter: (blob) => (blob.contentType.startsWith('image/')),
     });
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/13fa0fadacc274ce164322576cf043a25379d00f7')
+      .reply(404);
 
     nock('https://embed.spotify.com')
       .get('/?uri=spotify:artist:4gzpq5DPGxSnKTe4SA8HAU')
@@ -1227,6 +1233,9 @@ describe('MediaHandler', () => {
         throw new Error('kaputt');
       },
     });
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc')
+      .reply(404);
 
     nock('https://www.example.com')
       .get('/test.png')
@@ -1494,7 +1503,7 @@ describe('MediaHandler', () => {
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1538,7 +1547,7 @@ describe('MediaHandler', () => {
         })];
       });
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1592,7 +1601,7 @@ describe('MediaHandler', () => {
         })];
       });
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1646,7 +1655,7 @@ describe('MediaHandler', () => {
       .times(3)
       .reply(500, 'that went wrong');
 
-    assert.deepStrictEqual(await handler.put(blob), true);
+    assert.deepStrictEqual(await handler.upload(blob), true);
     blob.meta.foo = 'hello, world.';
     await handler.putMetaData(blob);
   });
@@ -1684,7 +1693,7 @@ describe('MediaHandler', () => {
       .get('/test_image.png')
       .reply(404, 'nope, not here');
 
-    assert.strictEqual(false, await handler.spool({ originalUri: TEST_IMAGE_URI }));
+    assert.strictEqual(false, await handler.upload({ originalUri: TEST_IMAGE_URI }));
   });
 
   it('sanitizes content type', () => {

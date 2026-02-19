@@ -13,6 +13,7 @@ import MediaHandler from './MediaHandler.js';
 import { Parser as MP4Parser } from './mp4/Parser.js';
 
 export * from './SizeTooLargeException.js';
+export * from './media-filters.js';
 
 export {
   MediaHandler,

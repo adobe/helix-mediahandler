@@ -334,7 +334,7 @@ export declare class MediaHandler {
 
   /**
    * Stores the metadata of the blob in the media bus.
-   * @param {ExternalResource} blob
+   * @param {MediaResource} blob
    * @return {Promise<void>}
    */
   putMetaData(blob: MediaResource): Promise<void>;
@@ -350,28 +350,12 @@ export declare class MediaHandler {
   getBlob(uri: string, src?: string): Promise<MediaResource>;
 
   /**
-   * Uploads the blob to the blob store. If the blob has not data, it is _spooled_ from the
+   * Uploads the blob to the blob store. If the blob has no data, it is transferred from the
    * source uri.
    * @param {MediaResource} blob - the resource object.
    * @returns {Promise<boolean>} `true` if the upload succeeded.
    */
   upload(blob: MediaResource): Promise<boolean>;
-
-  /**
-   * Puts the blob to the blob store.
-   *
-   * @param {MediaResource} blob - the resource object.
-   * @returns {Promise<boolean>} `true` if the upload succeeded.
-   */
-  put(blob: MediaResource): Promise<boolean>;
-
-  /**
-   * Transfers the blob to the azure storage.
-   *
-   * @param {MediaResource} blob The resource to transfer.
-   * @returns {Promise<boolean>} {@code true} if successful.
-   */
-  spool(blob: MediaResource): Promise<boolean>;
 
   /**
    * Returns the list of images that have been processed via getBlob().
