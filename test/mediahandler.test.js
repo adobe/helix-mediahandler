@@ -154,6 +154,7 @@ describe('MediaHandler', () => {
       contentType: 'image/png',
       width: '477',
       height: '268',
+      originalUri: 'https://www.example.com/test_image.png',
       uploaded: false,
     });
 
@@ -283,6 +284,7 @@ describe('MediaHandler', () => {
       contentType: 'image/png',
       width: '477',
       height: '268',
+      originalUri: 'https://www.example.com/cached_test_image.png',
       uploaded: false, // cached from previous session
     });
   });
