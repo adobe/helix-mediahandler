@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/adobe/helix-mediahandler/compare/v3.0.0...v3.0.1) (2026-02-19)
+
+
+### Bug Fixes
+
+* include originalUri in the response to use in media log ([197d172](https://github.com/adobe/helix-mediahandler/commit/197d172e1baed772788d1e178e697d0aa3eaf4bf))
+
 # [3.0.0](https://github.com/adobe/helix-mediahandler/compare/v2.11.0...v3.0.0) (2026-02-19)
 
 
