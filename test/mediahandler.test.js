@@ -814,17 +814,17 @@ describe('MediaHandler', () => {
 
   it('retries for a resource returning a 500 first', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
-    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+    const testImage = await fse.readFile(TEST_IMAGE);
     nock('https://www.example.com')
-      .get('/test_small_image.png')
+      .get('/test_image.png')
       .reply(500)
-      .get('/test_small_image.png')
+      .get('/test_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': 'bytes 0-8191/whoopsie',
         'content-length': 8192,
       });
 
-    await handler.fetchHeader('https://www.example.com/test_small_image.png');
+    await handler.fetchHeader('https://www.example.com/test_image.png');
   });
 
   it('can specify timeout', async () => {
@@ -1666,14 +1666,14 @@ describe('MediaHandler', () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
     });
-    const testImage = await fse.readFile(TEST_SMALL_IMAGE);
+    const testImage = await fse.readFile(TEST_IMAGE);
     nock('https://www.example.com')
-      .get('/test_small_image.png')
+      .get('/test_image.png')
       .reply(206, testImage.slice(0, 8192), {
         'content-range': 'bytes 0-8191/whoopsie',
         'content-length': 8192,
       });
-    await handler.fetchHeader('https://www.example.com/test_small_image.png');
+    await handler.fetchHeader('https://www.example.com/test_image.png');
   });
 
   it('fetchHeader includes correct accept header', async () => {
