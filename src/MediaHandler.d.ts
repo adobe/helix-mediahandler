@@ -283,7 +283,9 @@ export declare interface MediaHandlerOptions {
   disableR2?: boolean,
 
   /**
-   * Whether to disable waiting for the continue header from the server.
+   * Whether to disable waiting for the continue header from the server in
+   * multipart uploads in the S3 Client. This should be switched on for
+   * tests with nock 14.
    */
   disableExpectContinueHeader?: boolean,
 }
