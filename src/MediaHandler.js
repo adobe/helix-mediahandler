@@ -119,6 +119,8 @@ export default class MediaHandler {
       || String(process.env.HELIX_MEDIA_HANDLER_DISABLE_R2) === 'true'
       || String(process.env.HELIX_STORAGE_DISABLE_R2) === 'true';
 
+    const expectContinueHeader = opts.disableExpectContinueHeader ? false : undefined;
+
     if (this._awsRegion && this._awsAccessKeyId && this._awsSecretAccessKey) {
       this._log.info('Creating S3Client with credentials');
       this._s3 = new S3Client({
@@ -127,11 +129,13 @@ export default class MediaHandler {
           accessKeyId: this._awsAccessKeyId,
           secretAccessKey: this._awsSecretAccessKey,
         },
+        expectContinueHeader,
       });
     } else {
       this._log.info('Creating S3Client without credentials');
       this._s3 = new S3Client({
         region: this._awsRegion,
+        expectContinueHeader,
       });
     }
     if (disableR2) {
@@ -145,6 +149,7 @@ export default class MediaHandler {
           accessKeyId: this._r2AccessKeyId,
           secretAccessKey: this._r2SecretAccessKey,
         },
+        expectContinueHeader,
       });
     }
 

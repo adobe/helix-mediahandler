@@ -281,6 +281,11 @@ export declare interface MediaHandlerOptions {
    * @default `process.env.HELIX_MEDIA_HANDLER_DISABLE_R2`
    */
   disableR2?: boolean,
+
+  /**
+   * Whether to disable waiting for the continue header from the server.
+   */
+  disableExpectContinueHeader?: boolean,
 }
 
 /**
