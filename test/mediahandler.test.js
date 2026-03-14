@@ -651,6 +651,67 @@ describe('MediaHandler', () => {
     });
   });
 
+  it('uploads a large image to media-bus using multipart upload', async () => {
+    nock('https://www.example.com')
+      .get('/large.png')
+      .reply(200, Buffer.alloc(10 * 1024 * 1024), {
+        'content-type': 'image/png',
+        'content-length': 10 * 1024 * 1024,
+      });
+
+    const hash = '1dbb9f0bf9ec6436fc3d92c211eb86257e4b4d8fe';
+    const blobKey = `/foo-id/${hash}`;
+
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head(blobKey)
+      .reply(404)
+      .post(blobKey)
+      .query({ uploads: '' })
+      .reply(200, `<?xml version="1.0" encoding="UTF-8"?>
+        <InitiateMultipartUploadResult>
+          <UploadId>test-upload-id</UploadId>
+        </InitiateMultipartUploadResult>`)
+      .put(blobKey)
+      .query(true)
+      .times(2)
+      .reply(200, '', { ETag: '"test-etag"' })
+      .post(blobKey)
+      .query(true)
+      .reply(200, `<?xml version="1.0" encoding="UTF-8"?>
+        <CompleteMultipartUploadResult>
+          <Location>https://helix-media-bus.s3.us-east-1.amazonaws.com${blobKey}</Location>
+        </CompleteMultipartUploadResult>`);
+
+    const handler = new MediaHandler({
+      disableExpectContinueHeader: true,
+      disableR2: true,
+      ...DEFAULT_OPTS,
+    });
+    const resource = await handler.getBlob('https://www.example.com/large.png');
+    assert.deepStrictEqual(resource, {
+      contentBusId: 'foo-id',
+      contentLength: 10485760,
+      contentType: 'image/png',
+      hash,
+      lastModified: null,
+      meta: {
+        agent: `mediahandler-${version}`,
+        alg: '8k',
+        src: 'https://www.example.com/large.png',
+        height: '0',
+        width: '0',
+      },
+      originalUri: 'https://www.example.com/large.png',
+      owner: 'owner',
+      ref: 'ref',
+      repo: 'repo',
+      storageKey: `foo-id/${hash}`,
+      storageUri: `s3://helix-media-bus/foo-id/${hash}`,
+      uploaded: true,
+      uri: `https://ref--repo--owner.aem.page/media_${hash}.png#width=0&height=0`,
+    });
+  });
+
   it('creates a media resource', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);

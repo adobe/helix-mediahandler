@@ -281,6 +281,13 @@ export declare interface MediaHandlerOptions {
    * @default `process.env.HELIX_MEDIA_HANDLER_DISABLE_R2`
    */
   disableR2?: boolean,
+
+  /**
+   * Whether to disable waiting for the continue header from the server in
+   * multipart uploads in the S3 Client. This should be switched on for
+   * tests with nock 14.
+   */
+  disableExpectContinueHeader?: boolean,
 }
 
 /**
