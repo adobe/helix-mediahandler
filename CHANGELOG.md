@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/adobe/helix-mediahandler/compare/v3.0.1...v3.1.0) (2026-03-14)
+
+
+### Features
+
+* support disabling `expectContinueHeader` in S3 Client ([#404](https://github.com/adobe/helix-mediahandler/issues/404)) ([dae1ca4](https://github.com/adobe/helix-mediahandler/commit/dae1ca48326816b8ad12189c69faa4b094020af7))
+
 ## [3.0.1](https://github.com/adobe/helix-mediahandler/compare/v3.0.0...v3.0.1) (2026-02-19)
 
 
