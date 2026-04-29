@@ -51,6 +51,17 @@ export default class MediaHandler {
    * @param {MediaHandlerOptions} opts - options.
    */
   constructor(opts = {}) {
+    const {
+      owner, repo, ref, contentBusId, maxSize,
+    } = opts;
+
+    if (!owner || !repo || !ref || !contentBusId) {
+      throw Error('owner, repo, ref, and contentBusId are mandatory parameters.');
+    }
+    if (maxSize) {
+      throw Error('maxSize is no longer supported. use a maxSizeMediaFilter instead.');
+    }
+
     Object.assign(this, {
       _awsRegion: opts.awsRegion = 'us-east-1',
       _awsAccessKeyId: opts.awsAccessKeyId,
@@ -59,10 +70,10 @@ export default class MediaHandler {
       _r2AccessKeyId: opts.r2AccessKeyId,
       _r2SecretAccessKey: opts.r2SecretAccessKey,
       _bucketId: opts.bucketId || 'helix-media-bus',
-      _contentBusId: opts.contentBusId,
-      _owner: opts.owner,
-      _repo: opts.repo,
-      _ref: opts.ref,
+      _contentBusId: contentBusId,
+      _owner: owner,
+      _repo: repo,
+      _ref: ref,
 
       _log: opts.log || console,
       _noCache: opts.noCache,
@@ -96,17 +107,10 @@ export default class MediaHandler {
       _uploadedImages: new Map(),
     });
 
-    if (!this._owner || !this._repo || !this._ref || !this._contentBusId) {
-      throw Error('owner, repo, ref, and contentBusId are mandatory parameters.');
-    }
-    if (opts.maxSize) {
-      throw Error('maxSize is no longer supported. use a maxSizeMediaFilter instead.');
-    }
-
-    this._cache = blobCache[this._contentBusId];
+    this._cache = blobCache[contentBusId];
     if (!this._cache) {
-      blobCache[this._contentBusId] = {};
-      this._cache = blobCache[this._contentBusId];
+      blobCache[contentBusId] = {};
+      this._cache = blobCache[contentBusId];
     }
 
     // adjust _auth to function
@@ -120,9 +124,10 @@ export default class MediaHandler {
       || String(process.env.HELIX_STORAGE_DISABLE_R2) === 'true';
 
     const expectContinueHeader = opts.disableExpectContinueHeader ? false : undefined;
+    const { log } = this;
 
     if (this._awsRegion && this._awsAccessKeyId && this._awsSecretAccessKey) {
-      this._log.info('Creating S3Client with credentials');
+      log.debug('Creating S3Client with credentials');
       this._s3 = new S3Client({
         region: this._awsRegion,
         credentials: {
@@ -132,16 +137,16 @@ export default class MediaHandler {
         expectContinueHeader,
       });
     } else {
-      this._log.info('Creating S3Client without credentials');
+      log.debug('Creating S3Client without credentials');
       this._s3 = new S3Client({
         region: this._awsRegion,
         expectContinueHeader,
       });
     }
     if (disableR2) {
-      this._log.info('R2 S3Client disabled.');
+      log.info('R2 S3Client disabled.');
     } else {
-      this._log.info('Creating R2 S3Client');
+      log.debug('Creating R2 S3Client');
       this._r2 = new S3Client({
         endpoint: `https://${this._r2AccountId}.r2.cloudflarestorage.com`,
         region: 'us-east-1',
