@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/adobe/helix-mediahandler/compare/v3.1.0...v3.1.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* silence S3/R2 client creation ([#419](https://github.com/adobe/helix-mediahandler/issues/419)) ([84385f4](https://github.com/adobe/helix-mediahandler/commit/84385f48c1b5d63ae297ac54b85b5784087f432a))
+
 # [3.1.0](https://github.com/adobe/helix-mediahandler/compare/v3.0.1...v3.1.0) (2026-03-14)
 
 
