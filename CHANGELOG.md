@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/adobe/helix-mediahandler/compare/v3.1.1...v3.1.2) (2026-04-29)
+
+
+### Bug Fixes
+
+* trigger release ([f734f7f](https://github.com/adobe/helix-mediahandler/commit/f734f7f9c68efba8b3747f4ed970b8f61fb43737))
+
 ## [3.1.1](https://github.com/adobe/helix-mediahandler/compare/v3.1.0...v3.1.1) (2026-04-29)
 
 
