@@ -450,7 +450,7 @@ export default class MediaHandler {
 
     // compute the content type
     let contentType = res.headers.get('content-type');
-    if (!contentType) {
+    if (!contentType || contentType === 'application/octet-stream') {
       contentType = MediaHandler.getContentType(type, undefined, uri);
     }
 

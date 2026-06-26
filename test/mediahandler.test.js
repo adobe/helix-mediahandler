@@ -1737,6 +1737,22 @@ describe('MediaHandler', () => {
     await handler.fetchHeader('https://www.example.com/test_image.png');
   });
 
+  it('fetchHeader recalculates content type when server returns application/octet-stream', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+    });
+    const testImage = await fse.readFile(TEST_IMAGE);
+    nock('https://www.example.com')
+      .get('/test_image.png')
+      .reply(206, testImage.slice(0, 8192), {
+        'content-range': `bytes 0-8191/${testImage.length}`,
+        'content-length': 8192,
+        'content-type': 'application/octet-stream',
+      });
+    const result = await handler.fetchHeader('https://www.example.com/test_image.png');
+    assert.strictEqual(result.contentType, 'image/png');
+  });
+
   it('fetchHeader includes correct accept header', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
