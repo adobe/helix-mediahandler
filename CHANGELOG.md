@@ -1,3 +1,10 @@
+## [3.1.3](https://github.com/adobe/helix-mediahandler/compare/v3.1.2...v3.1.3) (2026-06-26)
+
+
+### Bug Fixes
+
+* recalculate content type in fetchHeader when server returns application/octet-stream ([#430](https://github.com/adobe/helix-mediahandler/issues/430)) ([83e10cf](https://github.com/adobe/helix-mediahandler/commit/83e10cf341927b6b063ae8bb852d61b92cbe4058))
+
 ## [3.1.2](https://github.com/adobe/helix-mediahandler/compare/v3.1.1...v3.1.2) (2026-04-29)
 
 
