@@ -144,6 +144,50 @@ export declare interface MediaResource {
 declare type MediaFilter = (blob: MediaResource) => boolean | MediaFilter;
 
 /**
+ * Common, backend-agnostic object metadata, as returned by a `StorageBucket`'s `head()`.
+ * See `CommonObjectMeta` in `@adobe/helix-shared-storage`.
+ */
+declare interface StorageObjectMeta {
+  contentType?: string,
+  contentLength?: number,
+  metadata?: Record<string, string>,
+  [key: string]: unknown,
+}
+
+/**
+ * The subset of `@adobe/helix-shared-storage`'s `Bucket` API that `MediaHandler` relies on.
+ * Bound to a single bucket/container, backed by whichever storage backend the caller configured
+ * (e.g. via `@adobe/helix-shared-storage-s3`'s `S3Backend`/`MirroringBackend`, or an
+ * Azure-backed equivalent) — `MediaHandler` itself has no storage-provider-specific code.
+ */
+export declare interface StorageBucket {
+  /**
+   * The bucket/container name this bucket is bound to.
+   */
+  bucket: string,
+
+  /**
+   * Issues a HEAD on the object; resolves `null` if not found.
+   */
+  head(key: string): Promise<StorageObjectMeta | null>,
+
+  /**
+   * Stores an object's contents along with metadata/system headers.
+   */
+  put(key: string, body: Buffer, contentType?: string, meta?: Record<string, string>, compress?: boolean): Promise<StorageObjectMeta>,
+
+  /**
+   * Streams an object's contents from a `Readable`, without requiring its length upfront.
+   */
+  putStream(key: string, stream: stream.Readable, contentType?: string, meta?: Record<string, string>): Promise<StorageObjectMeta>,
+
+  /**
+   * Replaces an object's metadata (fully replaces, does not merge).
+   */
+  putMeta(key: string, meta: Record<string, string>): Promise<StorageObjectMeta>,
+}
+
+/**
  * Provide the auth header for the given url
  */
 declare type AuthHeaderProvider = (url: URL) => string;
@@ -162,34 +206,13 @@ export declare interface TrackedImage {
 
 export declare interface MediaHandlerOptions {
   /**
-   * AWS region
+   * The storage bucket to use for the media bus. `MediaHandler` only ever writes to a single
+   * (media) bucket, so the caller constructs and configures it up front — e.g. via
+   * `StorageS3.fromContext(context).mediaBus()` from `@adobe/helix-shared-storage-s3`. Choice of
+   * storage backend (S3+R2, Azure, ...), credentials, and mirroring are entirely the caller's
+   * responsibility; `MediaHandler` has no storage-provider-specific code.
    */
-  awsRegion?: string,
-
-  /**
-   * AWS access key ID
-   */
-  awsAccessKeyId?: string,
-
-  /**
-   * AWS secret access key
-   */
-  awsSecretAccessKey?: string,
-
-  /**
-   * Cloudflare account ID
-   */
-  r2AccountId?: string,
-
-  /**
-   * Cloudflare access key ID
-   */
-  r2AccessKeyId?: string,
-
-  /**
-   * Cloudflare secret access key
-   */
-  r2SecretAccessKey?: string,
+  storageBucket: StorageBucket,
 
   /**
    * Media owner
@@ -211,12 +234,6 @@ export declare interface MediaHandlerOptions {
    * @example "44556677"
    */
   contentBusId: string,
-
-  /**
-   * media bus bucket id
-   * @default `'helix-media-bus'`
-   */
-  bucketId?: string,
 
   /**
    * logger
@@ -275,19 +292,6 @@ export declare interface MediaHandlerOptions {
    * @default 5mb
    */
   uploadBufferSize?: number,
-
-  /**
-   * if set, content will never be written to R2
-   * @default `process.env.HELIX_MEDIA_HANDLER_DISABLE_R2`
-   */
-  disableR2?: boolean,
-
-  /**
-   * Whether to disable waiting for the continue header from the server in
-   * multipart uploads in the S3 Client. This should be switched on for
-   * tests with nock 14.
-   */
-  disableExpectContinueHeader?: boolean,
 }
 
 /**
