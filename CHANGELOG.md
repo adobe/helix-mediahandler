@@ -1,3 +1,22 @@
+# [4.0.0](https://github.com/adobe/helix-mediahandler/compare/v3.1.3...v4.0.0) (2026-09-07)
+
+
+* feat!: use pluggable storage abstraction instead of talking to S3/R2 directly ([#445](https://github.com/adobe/helix-mediahandler/issues/445)) ([6d61b94](https://github.com/adobe/helix-mediahandler/commit/6d61b94cbc48031a93a8d26dda80941507c6d635))
+
+
+### BREAKING CHANGES
+
+* `MediaHandlerOptions` no longer accepts `awsRegion`,
+`awsAccessKeyId`, `awsSecretAccessKey`, `r2AccountId`, `r2AccessKeyId`,
+`r2SecretAccessKey`, `bucketId`, `disableR2`, or `disableExpectContinueHeader`.
+Callers must pass a `storageBucket` instead, constructed via
+`@adobe/helix-shared-storage` (e.g. `@adobe/helix-shared-storage-s3`'s
+`StorageS3`). The `HELIX_MEDIA_HANDLER_DISABLE_R2`/`HELIX_STORAGE_DISABLE_R2`
+env vars are no longer read by MediaHandler; R2 mirroring is now configured
+when the caller builds the storage bucket.
+
+Co-authored-by: Claude Sonnet 5 <noreply@anthropic.com>
+
 ## [3.1.3](https://github.com/adobe/helix-mediahandler/compare/v3.1.2...v3.1.3) (2026-06-26)
 
 
