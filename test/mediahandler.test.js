@@ -19,7 +19,7 @@ import { Scope } from 'nock/lib/scope.js';
 import assert from 'assert';
 import MediaHandler from '../src/MediaHandler.js';
 import pkgJson from '../src/package.cjs';
-import { Nock } from './utils.js';
+import { Nock, buildTestStorageBucket } from './utils.js';
 import { maxSizeMediaFilter, SizeTooLargeException } from '../src/index.js';
 
 const { version } = pkgJson;
@@ -31,6 +31,8 @@ const TEST_IMAGE_URI = 'https://www.example.com/test_image.png';
 const TEST_VIDEO = path.resolve(__rootdir, 'test', 'fixtures', 'test_video.mp4');
 const TEST_VIDEO_URI = 'https://www.example.com/test_video.mp4';
 
+const R2_ACCOUNT_ID = 'fake';
+
 // require('dotenv').config();
 const DEFAULT_OPTS = {
   owner: 'owner',
@@ -39,12 +41,7 @@ const DEFAULT_OPTS = {
   contentBusId: 'foo-id',
   forceHttp1: true,
   noCache: true,
-  awsRegion: 'us-east-1',
-  awsAccessKeyId: 'fake',
-  awsSecretAccessKey: 'fake',
-  r2AccountId: 'fake',
-  r2AccessKeyId: 'fake',
-  r2SecretAccessKey: 'fake',
+  storageBucket: buildTestStorageBucket({ r2AccountId: R2_ACCOUNT_ID }),
 };
 
 function extractMeta(hdrs) {
@@ -101,21 +98,14 @@ describe('MediaHandler', () => {
     nock.done();
   });
 
-  ['owner', 'repo', 'ref', 'contentBusId'].forEach((prop) => {
+  ['owner', 'repo', 'ref', 'contentBusId', 'storageBucket'].forEach((prop) => {
     it(`fails if no ${prop}`, async () => {
       const opts = {
         ...DEFAULT_OPTS,
         [prop]: '',
       };
-      await assert.throws(() => new MediaHandler(opts), Error('owner, repo, ref, and contentBusId are mandatory parameters.'));
+      await assert.throws(() => new MediaHandler(opts), Error('owner, repo, ref, contentBusId, and storageBucket are mandatory parameters.'));
     });
-  });
-
-  it('creates S3Client without credentials', async () => {
-    const opts = { ...DEFAULT_OPTS };
-    ['awsRegion', 'awsAccessKeyId', 'awsSecretAccessKey'].forEach((k) => delete opts[k]);
-
-    assert.doesNotThrow(() => new MediaHandler(opts));
   });
 
   it('tracks existing blobs via checkBlobExists (uploaded=false)', async () => {
@@ -182,7 +172,7 @@ describe('MediaHandler', () => {
         src: 'https://source.com/doc.docx',
       });
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -339,7 +329,7 @@ describe('MediaHandler', () => {
         src: 'https://www.example.com/test_image.png',
       });
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -408,7 +398,7 @@ describe('MediaHandler', () => {
         src: 'https://www.example.com/test_image.png',
       });
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -473,7 +463,7 @@ describe('MediaHandler', () => {
         src: 'https://www.example.com/test_video.mp4',
       }, '122d57f2fc8e69edd784262ae09510ce81b2e0902');
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -554,7 +544,7 @@ describe('MediaHandler', () => {
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: `mediahandler-${version}`,
         alg: '8k',
@@ -652,11 +642,18 @@ describe('MediaHandler', () => {
   });
 
   it('uploads a large image to media-bus using multipart upload', async () => {
+    const largeBuffer = Buffer.alloc(10 * 1024 * 1024);
     nock('https://www.example.com')
       .get('/large.png')
-      .reply(200, Buffer.alloc(10 * 1024 * 1024), {
+      .reply(206, largeBuffer.subarray(0, 8192), {
         'content-type': 'image/png',
-        'content-length': 10 * 1024 * 1024,
+        'content-range': `bytes 0-8191/${largeBuffer.length}`,
+        'content-length': 8192,
+      })
+      .get('/large.png')
+      .reply(200, largeBuffer, {
+        'content-type': 'image/png',
+        'content-length': largeBuffer.length,
       });
 
     const hash = '1dbb9f0bf9ec6436fc3d92c211eb86257e4b4d8fe';
@@ -680,12 +677,24 @@ describe('MediaHandler', () => {
       .reply(200, `<?xml version="1.0" encoding="UTF-8"?>
         <CompleteMultipartUploadResult>
           <Location>https://helix-media-bus.s3.us-east-1.amazonaws.com${blobKey}</Location>
-        </CompleteMultipartUploadResult>`);
+        </CompleteMultipartUploadResult>`)
+      .put(`${blobKey}?x-id=CopyObject`)
+      .reply(function reply() {
+        assert.strictEqual(this.req.headers['x-amz-metadata-directive'], 'REPLACE');
+        assert.strictEqual(this.req.headers['x-amz-copy-source'], `helix-media-bus/foo-id/${hash}`);
+        assert.deepStrictEqual(extractMeta(this.req.headers), {
+          agent: `mediahandler-${version}`,
+          alg: '8k',
+          src: 'https://www.example.com/large.png',
+          height: '0',
+          width: '0',
+        });
+        return [200, '<?xml version="1.0" encoding="UTF-8"?><CopyObjectResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
+      });
 
     const handler = new MediaHandler({
-      disableExpectContinueHeader: true,
-      disableR2: true,
       ...DEFAULT_OPTS,
+      storageBucket: buildTestStorageBucket({ r2AccountId: R2_ACCOUNT_ID, disableR2: true }),
     });
     const resource = await handler.getBlob('https://www.example.com/large.png');
     assert.deepStrictEqual(resource, {
@@ -921,7 +930,7 @@ describe('MediaHandler', () => {
         height: '268',
       });
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -964,7 +973,7 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1003,7 +1012,7 @@ describe('MediaHandler', () => {
         src: '',
         width: '58',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1134,7 +1143,7 @@ describe('MediaHandler', () => {
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
       .times(3)
       .reply(500, 'that went wrong');
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1163,7 +1172,7 @@ describe('MediaHandler', () => {
         width: '58',
         src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=PutObject')
       .times(3)
       .reply(500, 'that went wrong');
@@ -1188,7 +1197,7 @@ describe('MediaHandler', () => {
         width: '58',
         src: '',
       }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1204,51 +1213,7 @@ describe('MediaHandler', () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
-      disableR2: true,
-    });
-
-    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
-    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
-
-    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
-      .putObject({
-        alg: '8k',
-        agent: 'blob-test',
-        height: '74',
-        src: '',
-        width: '58',
-      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-
-    assert.strictEqual(await handler.upload(blob), true);
-  });
-
-  it('can disable R2 via env (HELIX_MEDIA_HANDLER_DISABLE_R2)', async () => {
-    process.env.HELIX_MEDIA_HANDLER_DISABLE_R2 = 'true';
-    const handler = new MediaHandler({
-      ...DEFAULT_OPTS,
-      blobAgent: 'blob-test',
-    });
-
-    const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
-    const blob = await handler.createMediaResourceFromStream(testStream, 613, 'image/png');
-
-    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
-      .putObject({
-        alg: '8k',
-        agent: 'blob-test',
-        height: '74',
-        src: '',
-        width: '58',
-      }, '14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc');
-
-    assert.strictEqual(await handler.upload(blob), true);
-  });
-
-  it('can disable R2 via env (HELIX_STORAGE_DISABLE_R2)', async () => {
-    process.env.HELIX_STORAGE_DISABLE_R2 = 'true';
-    const handler = new MediaHandler({
-      ...DEFAULT_OPTS,
-      blobAgent: 'blob-test',
+      storageBucket: buildTestStorageBucket({ r2AccountId: R2_ACCOUNT_ID, disableR2: true }),
     });
 
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
@@ -1346,7 +1311,7 @@ describe('MediaHandler', () => {
         width: '477',
       }, 'anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4');
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: 'blob-test',
         alg: '8k',
@@ -1412,7 +1377,7 @@ describe('MediaHandler', () => {
         width: '477',
       }, 'anotherittest_18bb2f0e55ff47be3fc32a575590b53e060b911f4', 'foo-id-2');
 
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         agent: 'blob-test',
         alg: '8k',
@@ -1474,7 +1439,7 @@ describe('MediaHandler', () => {
           width: '477',
         });
 
-      nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+      nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
         .putObject({
           agent: `mediahandler-${version}`,
           alg: '8k',
@@ -1543,7 +1508,7 @@ describe('MediaHandler', () => {
         });
         return [200, '<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<CopyObjectResult xmlns=\\"http://s3.amazonaws.com/doc/2006-03-01/\\"><LastModified>2021-05-05T08:37:23.000Z</LastModified><ETag>&quot;f278c0035a9b4398629613a33abe6451&quot;</ETag></CopyObjectResult>'];
       });
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1575,7 +1540,7 @@ describe('MediaHandler', () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
       blobAgent: 'blob-test',
-      disableR2: true,
+      storageBucket: buildTestStorageBucket({ r2AccountId: R2_ACCOUNT_ID, disableR2: true }),
     });
 
     const testStream = fse.createReadStream(TEST_SMALL_IMAGE);
@@ -1636,7 +1601,7 @@ describe('MediaHandler', () => {
       .put('/foo-id/14194ad0b7e2f6d345e3e8070ea9976b588a7d3bc?x-id=CopyObject')
       .times(3)
       .reply(500, 'that went wrong');
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',
@@ -1706,7 +1671,7 @@ describe('MediaHandler', () => {
           },
         })];
       });
-    nock(`https://helix-media-bus.${DEFAULT_OPTS.r2AccountId}.r2.cloudflarestorage.com`)
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
       .putObject({
         alg: '8k',
         agent: 'blob-test',

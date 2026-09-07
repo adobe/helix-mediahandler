@@ -12,15 +12,25 @@
 
 ## Installation
 
-The library uses the following environment variables:
-
-| Name  | Description  | Required | Default |
-|:------|:-------------|:---------|:--------|
-| HELIX_MEDIA_HANDLER_DISABLE_R2 | Whether the R2 backend should be disabled | No | false |
-
+`MediaHandler` no longer talks to S3/R2 directly — the caller passes in a `storageBucket`
+(a `Bucket` from [`@adobe/helix-shared-storage`](https://github.com/adobe/helix-shared/tree/main/packages/helix-shared-storage))
+bound to the media bus, constructed with whichever storage backend package is appropriate
+(e.g. [`@adobe/helix-shared-storage-s3`](https://github.com/adobe/helix-shared/tree/main/packages/helix-shared-storage-s3)
+for S3+R2). Storage credentials, backend selection, and R2 mirroring are entirely the caller's
+responsibility — see that package's own environment variable documentation.
 
 ```bash
 $ npm install @adobe/helix-mediahandler
+```
+
+```js
+import { StorageS3 } from '@adobe/helix-shared-storage-s3';
+import { MediaHandler } from '@adobe/helix-mediahandler';
+
+const storageBucket = StorageS3.fromContext(context).mediaBus();
+const mediaHandler = new MediaHandler({
+  owner, repo, ref, contentBusId, storageBucket,
+});
 ```
 
 # API Reference
