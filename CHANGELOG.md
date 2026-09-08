@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/adobe/helix-mediahandler/compare/v4.0.0...v4.1.0) (2026-09-08)
+
+
+### Features
+
+* support relative blob.uri via relativeMediaUri option ([#447](https://github.com/adobe/helix-mediahandler/issues/447)) ([7d0ea14](https://github.com/adobe/helix-mediahandler/commit/7d0ea1401fb6db00f9125393853f8b4b56eb19af))
+
 # [4.0.0](https://github.com/adobe/helix-mediahandler/compare/v3.1.3...v4.0.0) (2026-09-07)
 
 
