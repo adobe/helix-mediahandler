@@ -69,6 +69,7 @@ export default class MediaHandler {
 
       _log: opts.log || console,
       _noCache: opts.noCache,
+      _relativeMediaUri: opts.relativeMediaUri || false,
       _fetchTimeout: opts.fetchTimeout || 10000,
       _uploadBufferSize: opts.uploadBufferSize || 1024 * 1024 * 5,
 
@@ -149,7 +150,7 @@ export default class MediaHandler {
     // try to detect dimensions
     const { type, ...dims } = this.#getDimensions(buffer, '');
 
-    return MediaHandler.#updateBlobURI({
+    return this.#updateBlobURI({
       sourceUri,
       data: buffer.length === contentLength ? buffer : null,
       contentType: MediaHandler.getContentType(type, contentType, sourceUri),
@@ -220,7 +221,7 @@ export default class MediaHandler {
     // try to detect dimensions
     const { type, ...dims } = this.#getDimensions(partialBuffer, '');
 
-    return MediaHandler.#updateBlobURI({
+    return this.#updateBlobURI({
       sourceUri,
       stream,
       contentType: MediaHandler.getContentType(type, contentType, sourceUri),
@@ -273,7 +274,7 @@ export default class MediaHandler {
     }
     // eslint-disable-next-line no-param-reassign
     blob.meta = meta;
-    MediaHandler.#updateBlobURI(blob);
+    this.#updateBlobURI(blob);
     // Track as existing (not uploaded in this session)
     this.#trackMedia(blob, false);
     return true;
@@ -410,7 +411,7 @@ export default class MediaHandler {
 
     // compute hashes
     const hashInfo = this.#initMediaResource(body, contentLength);
-    return MediaHandler.#updateBlobURI({
+    return this.#updateBlobURI({
       originalUri: res.url,
       data,
       contentType,
@@ -445,7 +446,7 @@ export default class MediaHandler {
     const hash = `1${contentHash}`;
     const storageKey = `${this._contentBusId}/${this._namePrefix}${hash}`;
 
-    return MediaHandler.#updateBlobURI({
+    return this.#updateBlobURI({
       storageUri: `s3://${this._storageBucket.bucket}/${storageKey}`,
       storageKey,
       owner: this._owner,
@@ -472,7 +473,7 @@ export default class MediaHandler {
         contentType: blob.contentType,
       });
       log.info(`[${c}] Metadata updated for: ${blob.storageUri}`);
-      MediaHandler.#updateBlobURI(blob);
+      this.#updateBlobURI(blob);
     } catch (e) {
       log.info(`[${c}] Failed to update metadata for ${blob.storageUri}: ${e.message}`);
     }
@@ -692,7 +693,7 @@ export default class MediaHandler {
         await this.putMetaData(blob);
       }
     }
-    MediaHandler.#updateBlobURI(blob);
+    this.#updateBlobURI(blob);
     // Track as newly uploaded
     this.#trackMedia(blob, true);
     return true;
@@ -767,7 +768,7 @@ export default class MediaHandler {
    * @param {MediaResource} blob The resource to update.
    * @return {MediaResource} the resource.
    */
-  static #updateBlobURI(blob) {
+  #updateBlobURI(blob) {
     const {
       owner,
       repo,
@@ -779,7 +780,9 @@ export default class MediaHandler {
     if (blob.meta && blob.meta.width && blob.meta.height && !blob.contentType?.match(/^video\/[^/]+$/)) {
       fragment = `#width=${blob.meta.width}&height=${blob.meta.height}`;
     }
-    blob.uri = `https://${ref}--${repo}--${owner}.aem.page/media_${hash}.${ext}${fragment}`;
+    blob.uri = this._relativeMediaUri
+      ? `./media_${hash}.${ext}${fragment}`
+      : `https://${ref}--${repo}--${owner}.aem.page/media_${hash}.${ext}${fragment}`;
     return blob;
   }
 
