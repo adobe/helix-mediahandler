@@ -197,6 +197,18 @@ describe('MediaHandler', () => {
     assert.strictEqual(uploadedImages[0].hash, '18bb2f0e55ff47be3fc32a575590b53e060b911f4');
   });
 
+  it('creates blob.uri as a relative path when relativeMediaUri option is set', async () => {
+    const handler = new MediaHandler({
+      ...DEFAULT_OPTS,
+      relativeMediaUri: true,
+    });
+    const testImage = await fse.readFile(TEST_IMAGE);
+
+    const blob = handler.createMediaResource(testImage, testImage.length, 'image/png', 'https://source.com/doc.docx');
+
+    assert.strictEqual(blob.uri, './media_18bb2f0e55ff47be3fc32a575590b53e060b911f4.png#width=477&height=268');
+  });
+
   it('tracks existing blobs via low-level checkBlobExists (simulating docx2md flow)', async () => {
     const handler = new MediaHandler(DEFAULT_OPTS);
     const testImage = await fse.readFile(TEST_IMAGE);

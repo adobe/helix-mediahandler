@@ -254,6 +254,13 @@ export declare interface MediaHandlerOptions {
   noCache?: boolean,
 
   /**
+   * Emit `blob.uri` as a relative path (`./media_<hash>.<ext>`) instead of an absolute
+   * `https://<ref>--<repo>--<owner>.aem.page/...` URL.
+   * @default false
+   */
+  relativeMediaUri?: boolean,
+
+  /**
    * Specifies the maximum time that should be used for uploading
    * @default 10000
    */
