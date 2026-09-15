@@ -27,7 +27,7 @@
     "@adobe/fetch": "^4.1.10",
     "@adobe/helix-shared-storage": "^3.1.0",
     "fetch-retry": "6.0.0",
-    "image-size": "2.0.2",
+    "image-size": "2.0.3",
     "mime": "4.1.0"
   },
   "devDependencies": {
