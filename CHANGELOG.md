@@ -1,3 +1,10 @@
+## [4.1.2](https://github.com/adobe/helix-mediahandler/compare/v4.1.1...v4.1.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* upgrade storage ([#451](https://github.com/adobe/helix-mediahandler/issues/451)) ([a3d36e7](https://github.com/adobe/helix-mediahandler/commit/a3d36e78badaadf9f60d0bb8efc85573bf714b20))
+
 ## [4.1.1](https://github.com/adobe/helix-mediahandler/compare/v4.1.0...v4.1.1) (2026-09-15)
 
 
