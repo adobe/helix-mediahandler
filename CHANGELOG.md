@@ -1,3 +1,10 @@
+## [4.1.3](https://github.com/adobe/helix-mediahandler/compare/v4.1.2...v4.1.3) (2026-10-05)
+
+
+### Bug Fixes
+
+* **deps:** update dependency image-size to v2.0.4 ([#455](https://github.com/adobe/helix-mediahandler/issues/455)) ([0c1ffdf](https://github.com/adobe/helix-mediahandler/commit/0c1ffdf2651f9abe9644003c6a4a1c8ceff29248))
+
 ## [4.1.2](https://github.com/adobe/helix-mediahandler/compare/v4.1.1...v4.1.2) (2026-09-17)
 
 
