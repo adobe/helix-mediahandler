@@ -28,6 +28,9 @@ const TEST_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_image.png')
 const TEST_SMALL_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_small_image.png');
 const TEST_IMAGE_URI = 'https://www.example.com/test_image.png';
 
+const TEST_AVIF_IMAGE = path.resolve(__rootdir, 'test', 'fixtures', 'test_image.avif');
+const TEST_AVIF_HASH = '10271f0c3ae874c5f641af4ffe83e8931c61daa4e';
+
 const TEST_VIDEO = path.resolve(__rootdir, 'test', 'fixtures', 'test_video.mp4');
 const TEST_VIDEO_URI = 'https://www.example.com/test_video.mp4';
 
@@ -1730,6 +1733,65 @@ describe('MediaHandler', () => {
     assert.strictEqual(result.contentType, 'image/png');
   });
 
+  it('detects avif content type when creating a media resource', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_AVIF_IMAGE);
+    const blob = handler.createMediaResource(testImage, testImage.length, 'application/octet-stream', 'https://www.example.com/image');
+    assert.strictEqual(blob.contentType, 'image/avif');
+    assert.strictEqual(blob.meta.width, '58');
+    assert.strictEqual(blob.meta.height, '74');
+    assert.strictEqual(blob.uri, `https://ref--repo--owner.aem.page/media_${TEST_AVIF_HASH}.avif#width=58&height=74`);
+  });
+
+  it('fetchHeader detects avif content type when server returns application/octet-stream', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_AVIF_IMAGE);
+    nock('https://www.example.com')
+      .get('/image')
+      .reply(206, testImage, {
+        'content-range': `bytes 0-${testImage.length - 1}/${testImage.length}`,
+        'content-length': testImage.length,
+        'content-type': 'application/octet-stream',
+      });
+    const result = await handler.fetchHeader('https://www.example.com/image');
+    assert.strictEqual(result.contentType, 'image/avif');
+    assert.strictEqual(result.uri, `https://ref--repo--owner.aem.page/media_${TEST_AVIF_HASH}.avif`);
+  });
+
+  it('uploads avif with detected content type when source returns application/octet-stream', async () => {
+    const handler = new MediaHandler(DEFAULT_OPTS);
+    const testImage = await fse.readFile(TEST_AVIF_IMAGE);
+    nock('https://www.example.com')
+      .get('/image')
+      .reply(206, testImage, {
+        'content-range': `bytes 0-${testImage.length - 1}/${testImage.length}`,
+        'content-length': testImage.length,
+        'content-type': 'application/octet-stream',
+      })
+      .get('/image')
+      .reply(200, testImage, {
+        'content-length': testImage.length,
+        'content-type': 'application/octet-stream',
+      });
+
+    const expectContentType = function reply() {
+      assert.strictEqual(this.req.headers['content-type'], 'image/avif');
+      return [201];
+    };
+    nock('https://helix-media-bus.s3.us-east-1.amazonaws.com')
+      .head(`/foo-id/${TEST_AVIF_HASH}`)
+      .reply(404)
+      .put(`/foo-id/${TEST_AVIF_HASH}?x-id=PutObject`)
+      .reply(expectContentType);
+    nock(`https://helix-media-bus.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`)
+      .put(`/foo-id/${TEST_AVIF_HASH}?x-id=PutObject`)
+      .reply(expectContentType);
+
+    const blob = await handler.getBlob('https://www.example.com/image');
+    assert.strictEqual(blob.contentType, 'image/avif');
+    assert.strictEqual(blob.uri, `https://ref--repo--owner.aem.page/media_${TEST_AVIF_HASH}.avif#width=58&height=74`);
+  });
+
   it('fetchHeader includes correct accept header', async () => {
     const handler = new MediaHandler({
       ...DEFAULT_OPTS,
@@ -1761,6 +1823,8 @@ describe('MediaHandler', () => {
     assert.strictEqual(MediaHandler.sanitizeContentType('image/gif ; charset=utf-8'), 'image/gif');
     assert.strictEqual(MediaHandler.sanitizeContentType('image/gif ; q=.7'), 'image/gif;q=.7');
     assert.strictEqual(MediaHandler.sanitizeContentType('image/png ; charset=utf-8'), 'image/png');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/AVIF; charset=utf-8'), 'image/avif');
+    assert.strictEqual(MediaHandler.sanitizeContentType('image/webp;charset=UTF-8'), 'image/webp');
     assert.strictEqual(MediaHandler.sanitizeContentType('  application/octet-stream ; charset=utf-8'), 'application/octet-stream');
     assert.strictEqual(MediaHandler.sanitizeContentType('text/html;charset=UTF-8'), 'text/html;charset=utf-8');
   });
