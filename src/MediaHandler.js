@@ -406,7 +406,9 @@ export default class MediaHandler {
     // compute the content type
     let contentType = res.headers.get('content-type');
     if (!contentType || contentType === 'application/octet-stream') {
-      contentType = MediaHandler.getContentType(type, undefined, uri);
+      // sniff the partial body if the dimensions were not detected from the full data
+      const sniffedType = type || (data ? undefined : this.#getDimensions(body, c).type);
+      contentType = MediaHandler.getContentType(sniffedType, undefined, uri);
     }
 
     // compute hashes
@@ -731,7 +733,11 @@ export default class MediaHandler {
     }
     log.info(`[${c}] Download success: ${source.status}`);
     blob.lastModified = source.headers.get('last-modified');
-    blob.contentType = MediaHandler.sanitizeContentType(source.headers.get('content-type'));
+    const sourceContentType = MediaHandler.sanitizeContentType(source.headers.get('content-type'));
+    // don't replace an already detected content type with a generic one
+    if (sourceContentType && (sourceContentType !== 'application/octet-stream' || !blob.contentType)) {
+      blob.contentType = sourceContentType;
+    }
     blob.contentLength = Number.parseInt(source.headers.get('content-length'), 10);
 
     // the s3 multipart uploader has a default min size of 5mb, so download smaller images when
@@ -803,6 +809,8 @@ export default class MediaHandler {
         case 'image/jpeg':
         case 'image/png':
         case 'image/gif':
+        case 'image/avif':
+        case 'image/webp':
         case 'application/octet-stream':
           segs.pop();
       }
