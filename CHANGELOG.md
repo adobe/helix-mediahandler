@@ -1,3 +1,10 @@
+## [4.1.4](https://github.com/adobe/helix-mediahandler/compare/v4.1.3...v4.1.4) (2026-10-20)
+
+
+### Bug Fixes
+
+* keep detected content type for avif/webp instead of application/octet-stream ([#459](https://github.com/adobe/helix-mediahandler/issues/459)) ([4b0a4a6](https://github.com/adobe/helix-mediahandler/commit/4b0a4a693f1fee9b6dd32cf5cd2fa159023457d5))
+
 ## [4.1.3](https://github.com/adobe/helix-mediahandler/compare/v4.1.2...v4.1.3) (2026-10-05)
 
 
