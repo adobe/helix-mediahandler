@@ -1,3 +1,10 @@
+## [4.1.6](https://github.com/adobe/helix-mediahandler/compare/v4.1.5...v4.1.6) (2026-11-17)
+
+
+### Bug Fixes
+
+* **deps:** update dependency mime to v4.1.2 ([#465](https://github.com/adobe/helix-mediahandler/issues/465)) ([074eb32](https://github.com/adobe/helix-mediahandler/commit/074eb32510c247ada6a05bb6dacc37666decbfdf))
+
 ## [4.1.5](https://github.com/adobe/helix-mediahandler/compare/v4.1.4...v4.1.5) (2026-10-27)
 
 
